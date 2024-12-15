@@ -5,7 +5,7 @@ import DB from "./DB.ts";
 
 interface Packet {
   channel: string;
-  data: any;
+  data: WithImplicitCoercion<ArrayBuffer | SharedArrayBuffer>;
 }
 
 const HOST = "0.0.0.0";
