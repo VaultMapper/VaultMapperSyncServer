@@ -24,8 +24,6 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
     }
     return new Response(null, { status: 501 });
   }
-
-  const { socket, response } = Deno.upgradeWebSocket(req);
   const headers = req.headers;
   const url = new URL(req.url);
   const ip = info.remoteAddr.hostname;
@@ -38,19 +36,21 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
 
   if (!uuid || !vaultID || !token) {
     console.log("Player %s failed to connect (missing args) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
-    setTimeout(() => socket.close(1008), 1); // deno bug workaround
+    // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
   }
   if (!uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/) || !vaultID.match(/^vault_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
     console.log("Player %s failed to connect (regex) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
-    setTimeout(() => socket.close(1008), 1); // deno bug workaround
+    // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
   }
   if (!(await DB.validatePlayerToken(uuid, token))) {
     console.log("Player %s failed to connect (invalid token) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
-    setTimeout(() => socket.close(1008), 1); // deno bug workaround
+    // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
   }
+
+  const { socket, response } = Deno.upgradeWebSocket(req);
 
   console.log("Player %s connected from %s (%s) to %s", uuid, ip, nginxIP, vaultID);
 
