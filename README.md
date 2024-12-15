@@ -25,3 +25,5 @@
 ## Prisma Migrate
 
 - `deno task migrate` to create a new migration and generate the Prisma client
+
+TODO: make a docker image or something
