@@ -44,7 +44,7 @@ server.on("playerJoin", async (client) => {
   });
 
   const kicktimer = setTimeout(() => {
-    client.end("§cAuthentication failed, please try again later.");
+    client.end("§cAuthentication failed. Do you have the latest version of VaultMapper installed?\nGet help at https://discord.gg/jq47BD9hS2\n\nError code: tokenAckTimeout");
     console.log(`Authentication failed for ${client.username} (timed out)`);
   }, 15000);
 
@@ -90,7 +90,7 @@ server.on("playerJoin", async (client) => {
     switch (authPacket.type) {
       case AuthPacketType.TokenAck: {
         if (authPacket.data !== player.token) {
-          client.end("§cAuthentication failed, do you have the latest version of VaultMapper installed?");
+          client.end("§cAuthentication failed, do you have the latest version of VaultMapper installed?\nGet help at https://discord.gg/jq47BD9hS2\n\nError code: tokenAckInvalid");
           console.log(`Authentication failed for ${client.username} (invalid TokenAck)`);
           break;
         }
