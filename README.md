@@ -7,7 +7,8 @@
 # Install
 
 1. Clone the repository
-2. Run `deno install`
+2. Run `deno install` to install the dependencies
+3. Run `deno task generate` to generate the Prisma client
 
 # Run
 
@@ -18,3 +19,9 @@
 ## Production
 
 - `deno task start`
+
+# Development
+
+## Prisma Migrate
+
+- `deno task migrate` to create a new migration and generate the Prisma client
