@@ -1,0 +1,5 @@
+-- CreateTable
+CREATE TABLE "Stats" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT DEFAULT 1,
+    "vaultsRan" INTEGER NOT NULL
+);

@@ -1,0 +1,30 @@
+generator client {
+    provider = "prisma-client-js"
+    output   = "../generated/client"
+}
+
+datasource db {
+    provider = "sqlite"
+    url      = "file:../vmsync.db"
+}
+
+model Player {
+    playerUuid String       @id @unique
+    playerName String // just for convenience when looking at data
+    token      String
+    createdAt  DateTime     @default(now())
+    ColorCache ColorCache[]
+}
+
+model ColorCache {
+    id               Int    @id @default(autoincrement())
+    player           Player @relation(fields: [playerPlayerUuid], references: [playerUuid])
+    color            String
+    playerPlayerUuid String @unique
+}
+
+model Stats {
+    id    Int    @id @default(autoincrement())
+    stat  String
+    value Int
+}
