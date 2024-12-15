@@ -12,7 +12,6 @@
 	"dependencies": {
 		"@prisma/client": "^6.0.1",
 		"minecraft-data": "^3.80.0",
-		"minecraft-protocol": "^1.51.0",
-		"uWebSockets.js": "github:uNetworking/uWebSockets.js#v20.51.0"
+		"minecraft-protocol": "^1.51.0"
 	}
 }
