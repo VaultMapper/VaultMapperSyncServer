@@ -75,8 +75,6 @@ server.on("playerJoin", async (client) => {
       return;
     }
 
-    console.log(data.data, typeof data.data);
-
     const json = Buffer.from(data.data).toString().substring(2);
 
     let authPacket: AuthPacket;
@@ -90,7 +88,7 @@ server.on("playerJoin", async (client) => {
     switch (authPacket.type) {
       case AuthPacketType.TokenAck: {
         if (authPacket.data !== player.token) {
-          client.end("§cAuthentication failed, do you have the latest version of VaultMapper installed?\nGet help at https://discord.gg/jq47BD9hS2\n\nError code: tokenAckInvalid");
+          client.end("§cAuthentication failed. Do you have the latest version of VaultMapper installed?\nGet help at https://discord.gg/jq47BD9hS2\n\nError code: tokenAckInvalid");
           console.log(`Authentication failed for ${client.username} (invalid TokenAck)`);
           break;
         }
