@@ -8,12 +8,25 @@ export default class ColorCache {
     this.cache = await DB.getPlayerColors();
   }
 
+  public static randomColor(): string {
+    const r = Math.floor(Math.random() * 256)
+      .toString(16)
+      .padStart(2, "0");
+    const g = Math.floor(Math.random() * 256)
+      .toString(16)
+      .padStart(2, "0");
+    const b = Math.floor(Math.random() * 256)
+      .toString(16)
+      .padStart(2, "0");
+    return `#${r}${g}${b}`;
+  }
+
   public static getColor(uuid: string): string {
     if (this.cache.has(uuid)) {
       return this.cache.get(uuid)!;
     } else {
       // const color = await ColorCache.getAverageSkinColor(uuid);
-      const color = "#" + uuid.substring(0, 6);
+      const color = this.randomColor();
       this.cache.set(uuid, color);
       DB.setPlayerColor(uuid, color);
       return color;
