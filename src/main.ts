@@ -36,13 +36,15 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   const uuid = url.pathname.split("/")[2];
   // ex. wss://vmsync.boykiss.ing/vault_0504c51e-421a-4512-ad28-2f67c865ac72/b66daa18-7360-4fd1-b60f-15a30cb0dccc
 
+  const username = (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`)).json()).username;
+
   if (!uuid || !vaultID) {
     if (Deno.env.get("WEBHOOK_URL")) {
       await fetch(Deno.env.get("WEBHOOK_URL")!, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: `Player failed to connect (missing args) from ${uuid} (${ip}) to ${vaultID} - Possible Attacker`,
+          content: `Player failed to connect (missing args) from ${username} (${uuid}) (${ip} / ${nginxIP}) to ${vaultID} - Possible Attacker`,
         }),
       });
     }
@@ -57,7 +59,7 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          content: `Player failed to connect (regex) from ${uuid} (${ip}) to ${vaultID} - Possible Attacker`,
+          content: `Player failed to connect (regex) from ${username} (${uuid}) (${ip} / ${nginxIP}) to ${vaultID} - Possible Attacker`,
         }),
       });
     }
@@ -74,7 +76,7 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        content: `Player ${uuid} connected from ${ip} (${nginxIP}) to ${vaultID}`,
+        content: `Player ${username} (${uuid}) connected from (${ip} / ${nginxIP}) to ${vaultID}`,
       }),
     });
   }
