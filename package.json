@@ -1,7 +1,7 @@
 {
 	"main": "src/main.ts",
 	"scripts": {
-		"start": "deno run --allow-read --allow-net --allow-env --allow-sys --allow-ffi --unstable-detect-cjs src/main.ts",
+		"start": "git pull && deno run --allow-read --allow-net --allow-env --allow-sys --allow-ffi --unstable-detect-cjs src/main.ts",
 		"dev": "deno run --watch --allow-read --allow-net --allow-env --allow-sys --allow-ffi --unstable-detect-cjs src/main.ts",
 		"generate": "deno run -A --unstable-detect-cjs npm:prisma@latest generate",
 		"migrate": "deno run -A npm:prisma@latest migrate dev --preview-feature && deno task generate"
