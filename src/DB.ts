@@ -35,6 +35,21 @@ export default class DB {
     return map;
   }
 
+  public static async getStats(): Promise<{ [stat: string]: number }> {
+    const stats = await this.prisma.stats.findMany({
+      select: {
+        stat: true,
+        value: true,
+      },
+    });
+    const map: { [stat: string]: number } = {};
+    for (const stat of stats) {
+      map[stat.stat] = stat.value;
+    }
+
+    return map;
+  }
+
   public static async setOrCreateStat(stat: string, value: number): Promise<void> {
     await this.prisma.stats.upsert({
       where: {

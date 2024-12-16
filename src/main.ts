@@ -1,22 +1,27 @@
 import "jsr:@std/dotenv/load";
 import ColorCache from "./ColorCache.ts";
 import VaultManager from "./vaults/VaultManager.ts";
+import DB from "./DB.ts";
 
 await ColorCache.loadFromDB();
 
 const HOST = "0.0.0.0";
 const PORT = 25284;
 
-Deno.serve({ hostname: HOST, port: PORT }, (req, info) => {
+Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   if (req.headers.get("upgrade") != "websocket") {
     if (new URL(req.url).pathname === "/stats") {
+      if (!Deno.env.get("STATS_AUTH")) {
+        return new Response(null, { status: 501 });
+      }
       if (req.headers.get("authorization") !== Deno.env.get("STATS_AUTH")) {
         return new Response(null, { status: 401 });
       }
       const currentVaults = VaultManager.getVaults().map((vault) => {
         return { id: vault.id, players: vault.getPlayers().map((player) => player.uuid) };
       });
-      return new Response(JSON.stringify({ total: currentVaults.length, vaults: currentVaults }), {
+      const stats = await DB.getStats();
+      return new Response(JSON.stringify({ total: currentVaults.length, currentVaults, stats }), {
         headers: { "content-type": "application/json" },
       });
     }
