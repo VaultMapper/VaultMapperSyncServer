@@ -9,13 +9,15 @@ export default class VaultCell {
   cellType: CellType;
   roomType: RoomType;
   roomName: RoomName;
+  marked: boolean;
 
-  constructor(x: number, z: number, inscripted: boolean, cellType: CellType, roomType: RoomType, roomName: RoomName) {
+  constructor(x: number, z: number, inscripted: boolean, cellType: CellType, roomType: RoomType, roomName: RoomName, marked: boolean) {
     this.x = x;
     this.z = z;
     this.inscripted = inscripted;
     this.cellType = cellType;
     this.roomType = roomType;
     this.roomName = roomName;
+    this.marked = marked;
   }
 }
