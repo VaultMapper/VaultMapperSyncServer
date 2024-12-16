@@ -25,8 +25,8 @@ export default class CellPacket {
     return new CellPacket(obj.x, obj.z, obj.i, obj.c, obj.r, obj.n);
   }
 
-  public toVaultCell(): VaultCell {
-    return new VaultCell(this.x, this.z, this.i, this.c, this.r, this.n);
+  public static toVaultCell(packet: CellPacket): VaultCell {
+    return new VaultCell(packet.x, packet.z, packet.i, packet.c, packet.r, packet.n);
   }
 
   public static fromVaultCell(cell: VaultCell): CellPacket {

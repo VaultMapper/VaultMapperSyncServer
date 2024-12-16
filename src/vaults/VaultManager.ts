@@ -67,13 +67,14 @@ export default class VaultManager {
 
       for (const otherPlayer of vault.getPlayers()) {
         if (otherPlayer.uuid === player.uuid) continue;
-        player.sendPacket(new JoinPacketCapsule(new JoinPacket(otherPlayer.uuid))); //idk if we even need this or if we need something else
+        player.sendPacket(new JoinPacketCapsule(new JoinPacket(otherPlayer.uuid))); //idk if we even need this or if we need something else, maybe a 0 move packet?
       }
 
       vault.broadcast(new JoinPacketCapsule(new JoinPacket(uuid)), player.uuid);
     });
 
     ws.addEventListener("close", () => {
+      console.log(`Player ${player.uuid} disconnected from ${vaultID}`);
       vault.removePlayer(player);
       vault.broadcast(new LeavePacketCapsule(new LeavePacket(uuid)), player.uuid);
     });

@@ -9,22 +9,12 @@ datasource db {
 }
 
 model Player {
-    playerUuid String       @id @unique
-    playerName String // just for convenience when looking at data
-    token      String
-    createdAt  DateTime     @default(now())
-    ColorCache ColorCache[]
-}
-
-model ColorCache {
-    id               Int    @id @default(autoincrement())
-    player           Player @relation(fields: [playerPlayerUuid], references: [playerUuid])
-    color            String
-    playerPlayerUuid String @unique
+    playerUuid String   @id @unique
+    color      String
+    createdAt  DateTime @default(now())
 }
 
 model Stats {
-    id    Int    @id @default(autoincrement())
-    stat  String
+    stat  String @id @unique
     value Int
 }

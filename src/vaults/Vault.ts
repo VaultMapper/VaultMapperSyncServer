@@ -1,5 +1,7 @@
 import type { Capsule } from "../packets/Capsule.ts";
-import { MovePacketCapsule, CellPacketCapsule } from "../packets/Capsule.ts";
+import { MovePacketCapsule, CellPacketCapsule, DATA } from "../packets/Capsule.ts";
+import CellPacket from "../packets/CellPacket.ts";
+import MovePacket from "../packets/MovePacket.ts";
 import PacketType from "../packets/PacketType.ts";
 import VaultCell from "./VaultCell.ts";
 import VaultManager from "./VaultManager.ts";
@@ -52,25 +54,23 @@ export default class Vault {
   }
 
   public handlePacket(packet: Capsule, player: VaultPlayer) {
-    console.log(`[Vault ${this.id}] Received packet from ${player.uuid}: ${PacketType[packet.type]}`); // TODO: Remove this line
+    console.log(`[Vault ${this.id}] Received packet from ${player.uuid}: ${PacketType[packet.type as unknown as keyof typeof PacketType]}`); // TODO: Remove this line
     switch (packet.type) {
       case PacketType.CELL: {
         const capsule: CellPacketCapsule = packet as CellPacketCapsule;
-        this.addOrUpdateCell(capsule.data.toVaultCell());
+        this.addOrUpdateCell(CellPacket.toVaultCell(DATA(capsule)));
         break;
       }
       case PacketType.MOVE: {
         const capsule: MovePacketCapsule = packet as MovePacketCapsule;
-        player.setX(capsule.data.x);
-        player.setZ(capsule.data.z);
-        player.setYaw(capsule.data.yaw);
+        player.setX(DATA<typeof capsule.t>(capsule).x);
+        player.setZ(DATA<typeof capsule.t>(capsule).z);
+        player.setYaw(DATA<typeof capsule.t>(capsule).yaw);
         this.addOrUpdatePlayer(player);
+
+        packet = new MovePacketCapsule(new MovePacket(player.uuid, DATA<typeof capsule.t>(capsule).x, DATA<typeof capsule.t>(capsule).z, DATA<typeof capsule.t>(capsule).yaw)); //fix color
         break;
       }
-    }
-
-    if ("color" in packet.data && packet.data.color !== undefined) {
-      Object.assign(packet.data, { color: player.color }); //fuck typescript
     }
 
     this.broadcast(packet, player.uuid);
