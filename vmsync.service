@@ -1,0 +1,14 @@
+[Unit]
+Description=VMSync
+Documentation=https://github.com/NodiumHosting/VaultMapperSyncServer
+Wants=network-online.target
+After=network-online.target
+[Service]
+Type=simple
+User=vaultmapper
+WorkingDirectory=/home/vaultmapper/vmsync
+ExecStart=deno task start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
