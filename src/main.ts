@@ -79,8 +79,8 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
         embeds: [
           {
             title: `${username} connected`,
-            description: `${vaultID}`,
             fields: [
+              { name: "Vault ID", value: vaultID },
               { name: "UUID", value: uuid },
               { name: "IP", value: ip },
               { name: "Nginx IP", value: nginxIP },
