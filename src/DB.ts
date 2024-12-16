@@ -35,6 +35,9 @@ export default class DB {
     if (!user) {
       return false;
     }
+
+    console.debug(user.token, token);
+
     return user.token === token;
   }
 
@@ -97,7 +100,7 @@ export default class DB {
 
 class TokenGenerator {
   private static readonly PREFIX = "VM_";
-  private static readonly CHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-";
+  private static readonly CHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
   private static readonly LENGTH = 32;
   private static readonly GENERATE_LENGTH = TokenGenerator.LENGTH - TokenGenerator.PREFIX.length;
 

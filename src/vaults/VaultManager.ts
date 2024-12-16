@@ -1,3 +1,4 @@
+import ColorCache from "../ColorCache.ts";
 import DB from "../DB.ts";
 import { Capsule, CellPacketCapsule, JoinPacketCapsule, LeavePacketCapsule } from "../packets/Capsule.ts";
 import CellPacket from "../packets/CellPacket.ts";
@@ -54,7 +55,7 @@ export default class VaultManager {
   }
 
   public static connect(ws: WebSocket, uuid: string, vaultID: string): void {
-    const player = new VaultPlayer(uuid, ws);
+    const player = new VaultPlayer(uuid, ColorCache.getColor(uuid), ws);
     const vault = this.getOrCreateVault(vaultID);
 
     ws.addEventListener("open", () => {

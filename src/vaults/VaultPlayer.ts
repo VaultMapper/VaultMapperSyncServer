@@ -2,13 +2,15 @@ import { Capsule } from "../packets/Capsule.ts";
 
 export default class VaultPlayer {
   public readonly uuid: string;
+  public readonly color: string;
   public readonly ws: WebSocket;
   private x: number = 0;
   private z: number = 0;
   private yaw: number = 0;
 
-  constructor(uuid: string, ws: WebSocket) {
+  constructor(uuid: string, color: string, ws: WebSocket) {
     this.uuid = uuid;
+    this.color = color;
     this.ws = ws;
   }
 

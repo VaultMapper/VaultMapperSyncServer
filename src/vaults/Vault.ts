@@ -69,6 +69,10 @@ export default class Vault {
       }
     }
 
+    if ("color" in packet.data && packet.data.color !== undefined) {
+      Object.assign(packet.data, { color: player.color }); //fuck typescript
+    }
+
     this.broadcast(packet, player.uuid);
   }
 

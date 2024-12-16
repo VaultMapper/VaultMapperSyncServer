@@ -45,6 +45,8 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
     return new Response(null, { status: 400 });
   }
   if (!(await DB.validatePlayerToken(uuid, token))) {
+    console.debug((await DB.getOrCreatePlayerToken(uuid, "")).token, token);
+
     console.log("Player %s failed to connect (invalid token) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
     // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });

@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
-import * as mc from "minecraft-protocol";
-import data from "minecraft-data";
+import * as mc from "npm:minecraft-protocol";
+import data from "npm:minecraft-data";
 import DB from "./DB.ts";
 
 interface Packet {
@@ -14,7 +14,7 @@ const VERSION = "1.18.2";
 const PACKET_CHANNEL = "vaultmapper:auth";
 
 const server = mc.createServer({
-  "online-mode": false, // TODO: change
+  "online-mode": true,
   host: HOST,
   port: PORT,
   version: VERSION,
@@ -26,6 +26,15 @@ const mcData = data(VERSION);
 
 server.on("listening", () => {
   console.log(`Minecraft Auth server now listening on ${HOST}:${PORT}`);
+});
+
+server.on("connection", (client) => {
+  // TODO: remove when fixed
+  console.log(`Connection from ${client.username} (${client.uuid})`);
+});
+
+server.on("error", (error) => {
+  console.error("Error:", error);
 });
 
 server.on("playerJoin", async (client) => {
