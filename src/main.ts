@@ -41,7 +41,7 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
     // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
   }
-  if (!uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/) || !vaultID.match(/^vault_[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+  if (!uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/) || !vaultID.match(/^vault_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
     console.log("Player %s failed to connect (regex) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
     // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
