@@ -13,7 +13,7 @@ export default class ColorCache {
       return this.cache.get(uuid)!;
     } else {
       // const color = await ColorCache.getAverageSkinColor(uuid);
-      const color = uuid.substring(0, 6);
+      const color = "#" + uuid.substring(0, 6);
       this.cache.set(uuid, color);
       DB.setPlayerColor(uuid, color);
       return color;
