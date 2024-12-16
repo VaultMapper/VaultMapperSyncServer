@@ -5,7 +5,7 @@ import DB from "./DB.ts";
 
 await ColorCache.loadFromDB();
 
-const HOST = "0.0.0.0";
+const HOST = "127.0.0.1";
 const PORT = 25284;
 
 Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {

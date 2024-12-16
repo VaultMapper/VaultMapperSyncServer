@@ -54,7 +54,6 @@ export default class Vault {
   }
 
   public handlePacket(packet: Capsule, player: VaultPlayer) {
-    console.log(`[Vault ${this.id}] Received packet from ${player.uuid}: ${PacketType[packet.type as unknown as keyof typeof PacketType]}`); // TODO: Remove this line
     switch (packet.type) {
       case PacketType.CELL: {
         const capsule: CellPacketCapsule = packet as CellPacketCapsule;
