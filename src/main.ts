@@ -79,7 +79,12 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
         embeds: [
           {
             title: `${username} connected`,
-            description: `UUID: ${uuid}\nIP: ${ip}\nNginx IP: ${nginxIP}\nVault ID: ${vaultID}`,
+            description: `${vaultID}`,
+            fields: [
+              { name: "UUID", value: uuid },
+              { name: "IP", value: ip },
+              { name: "Nginx IP", value: nginxIP },
+            ],
             color: parseInt(ColorCache.getColor(uuid).slice(1), 16),
             footer: { text: "VMSync" },
           },
