@@ -37,17 +37,47 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   // ex. wss://vmsync.boykiss.ing/vault_0504c51e-421a-4512-ad28-2f67c865ac72/b66daa18-7360-4fd1-b60f-15a30cb0dccc
 
   if (!uuid || !vaultID) {
+    if (Deno.env.get("WEBHOOK_URL")) {
+      await fetch(Deno.env.get("WEBHOOK_URL")!, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `Player failed to connect (missing args) from ${uuid} (${ip}) to ${vaultID} - Possible Attacker`,
+        }),
+      });
+    }
+
     console.log("Player %s failed to connect (missing args) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
     // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
   }
   if (!uuid.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/) || !vaultID.match(/^vault_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/)) {
+    if (Deno.env.get("WEBHOOK_URL")) {
+      await fetch(Deno.env.get("WEBHOOK_URL")!, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: `Player failed to connect (regex) from ${uuid} (${ip}) to ${vaultID} - Possible Attacker`,
+        }),
+      });
+    }
+
     console.log("Player %s failed to connect (regex) from %s (%s) to %s - Possible Attacker", uuid, ip, nginxIP, vaultID);
     // setTimeout(() => socket.close(1008), 1); // deno bug workaround
     return new Response(null, { status: 400 });
   }
 
   const { socket, response } = Deno.upgradeWebSocket(req);
+
+  if (Deno.env.get("WEBHOOK_URL")) {
+    await fetch(Deno.env.get("WEBHOOK_URL")!, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: `Player ${uuid} connected from ${ip} (${nginxIP}) to ${vaultID}`,
+      }),
+    });
+  }
 
   console.log("Player %s connected from %s (%s) to %s", uuid, ip, nginxIP, vaultID);
 
