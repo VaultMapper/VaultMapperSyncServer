@@ -8,11 +8,12 @@ export default class ColorCache {
     this.cache = await DB.getPlayerColors();
   }
 
-  public static async getColor(uuid: string): Promise<string> {
+  public static getColor(uuid: string): string {
     if (this.cache.has(uuid)) {
       return this.cache.get(uuid)!;
     } else {
-      const color = await ColorCache.getAverageSkinColor(uuid);
+      // const color = await ColorCache.getAverageSkinColor(uuid);
+      const color = uuid.substring(0, 6);
       this.cache.set(uuid, color);
       DB.setPlayerColor(uuid, color);
       return color;
