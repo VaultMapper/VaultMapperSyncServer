@@ -76,7 +76,14 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        content: `Player ${username} (${uuid}) connected from (${ip} / ${nginxIP}) to ${vaultID}`,
+        embeds: [
+          {
+            title: `${username} connected`,
+            description: `UUID: ${uuid}\nIP: ${ip}\nNginx IP: ${nginxIP}\nVault ID: ${vaultID}`,
+            color: parseInt(ColorCache.getColor(uuid).slice(1), 16),
+            footer: { text: "VMSync" },
+          },
+        ],
       }),
     });
   }
