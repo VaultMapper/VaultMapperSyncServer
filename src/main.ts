@@ -5,8 +5,8 @@ import DB from "./DB.ts";
 
 await ColorCache.loadFromDB();
 
-const HOST = "127.0.0.1";
-const PORT = 25284;
+const HOST = Deno.env.get("HOST") || "127.0.0.1";
+const PORT = parseInt(Deno.env.get("PORT") || "25284");
 
 Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   if (req.headers.get("upgrade") != "websocket") {
@@ -36,7 +36,7 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   const uuid = url.pathname.split("/")[2];
   // ex. wss://vmsync.boykiss.ing/vault_0504c51e-421a-4512-ad28-2f67c865ac72/b66daa18-7360-4fd1-b60f-15a30cb0dccc
 
-  const username = (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`)).json()).name || "!!Unknown Username!!";
+  const username = (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`)).json()).name || "<Unknown Username>";
 
   if (!uuid || !vaultID) {
     if (Deno.env.get("WEBHOOK_URL")) {
