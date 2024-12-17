@@ -72,6 +72,8 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   const { socket, response } = Deno.upgradeWebSocket(req);
 
   if (Deno.env.get("WEBHOOK_URL")) {
+    const players = VaultManager.getOrCreateVault(vaultID).getPlayers();
+
     await fetch(Deno.env.get("WEBHOOK_URL")!, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,7 +81,8 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
         embeds: [
           {
             title: `${username} connected`,
-            description: `${uuid} connected to ${vaultID}`,
+            description: `${vaultID}`,
+            fields: [{ name: `Players (${players.length})`, value: `${players.join("\n")}` }],
             color: parseInt(ColorCache.getColor(uuid).slice(1), 16),
             footer: { text: "VMSync" },
           },
