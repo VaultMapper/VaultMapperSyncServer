@@ -72,10 +72,12 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   const { socket, response } = Deno.upgradeWebSocket(req);
 
   if (Deno.env.get("WEBHOOK_URL")) {
-    const players = VaultManager.getOrCreateVault(vaultID)
-      .getPlayers()
-      .map((player) => player.uuid)
-      .map(async (puuid) => (await (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${puuid}`)).json()).name) || "<Unknown Username>");
+    const players = await Promise.all(
+      VaultManager.getOrCreateVault(vaultID)
+        .getPlayers()
+        .map((player) => player.uuid)
+        .map(async (puuid) => ((await (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${puuid}`)).json()).name) as string) || "<Unknown Username>"),
+    );
     players.push(username);
 
     await fetch(Deno.env.get("WEBHOOK_URL")!, {
