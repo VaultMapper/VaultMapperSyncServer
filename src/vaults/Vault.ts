@@ -54,25 +54,38 @@ export default class Vault {
   }
 
   public handlePacket(packet: Capsule, player: VaultPlayer) {
-    switch (packet.type) {
-      case PacketType.CELL: {
-        const capsule: CellPacketCapsule = packet as CellPacketCapsule;
-        this.addOrUpdateCell(CellPacket.toVaultCell(DATA(capsule)));
-        break;
-      }
-      case PacketType.MOVE: {
-        const capsule: MovePacketCapsule = packet as MovePacketCapsule;
-        player.setX(DATA<typeof capsule.t>(capsule).x);
-        player.setZ(DATA<typeof capsule.t>(capsule).z);
-        player.setYaw(DATA<typeof capsule.t>(capsule).yaw);
-        this.addOrUpdatePlayer(player);
+    try {
+      switch (packet.type) {
+        case PacketType.CELL: {
+          const capsule: CellPacketCapsule = packet as CellPacketCapsule;
+          this.addOrUpdateCell(CellPacket.toVaultCell(DATA(capsule)));
+          break;
+        }
+        case PacketType.MOVE: {
+          const capsule: MovePacketCapsule = packet as MovePacketCapsule;
+          player.setX(DATA<typeof capsule.t>(capsule).x);
+          player.setZ(DATA<typeof capsule.t>(capsule).z);
+          player.setYaw(DATA<typeof capsule.t>(capsule).yaw);
+          this.addOrUpdatePlayer(player);
 
-        packet = new MovePacketCapsule(new MovePacket(player.uuid, DATA<typeof capsule.t>(capsule).x, DATA<typeof capsule.t>(capsule).z, DATA<typeof capsule.t>(capsule).yaw)); //fix color
-        break;
+          packet = new MovePacketCapsule(new MovePacket(player.uuid, DATA<typeof capsule.t>(capsule).x, DATA<typeof capsule.t>(capsule).z, DATA<typeof capsule.t>(capsule).yaw)); //fix color
+          break;
+        }
       }
+
+      this.broadcast(packet, player.uuid);
+    } catch (e) {
+      if (Deno.env.get("WEBHOOK_URL")) {
+        fetch(Deno.env.get("WEBHOOK_URL")!, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `Failed to handle packet from ${player.uuid} in ${this.id} - ${e}`,
+          }),
+        });
+      }
+      console.error(e);
     }
-
-    this.broadcast(packet, player.uuid);
   }
 
   public broadcast(packet: Capsule, excludeUuid: string): void {
