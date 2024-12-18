@@ -1,10 +1,14 @@
 import { PrismaClient } from "../generated/client/index.js";
-import type { Player } from "../generated/client/index.d.ts";
+import type { Player, PrismaClient as PC } from "../generated/client/index.d.ts";
 
 export { Player };
 
 export default class DB {
-  private static prisma = new PrismaClient();
+  private static prisma: PC = new PrismaClient();
+
+  public static async init(): Promise<void> {
+    await this.prisma.$queryRaw`PRAGMA journal_mode=WAL;`;
+  }
 
   public static async setPlayerColor(playerUuid: string, color: string): Promise<void> {
     await this.prisma.player.upsert({

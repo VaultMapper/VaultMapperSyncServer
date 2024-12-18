@@ -28,7 +28,9 @@ export default class VaultManager {
   }
 
   public static deleteVault(uuid: string): void {
-    DB.incOrCreateStat("global:cells_total", this.vaults.get(uuid)!.getCells().length || 0);
+    const vault = this.vaults.get(uuid);
+    if (!vault) return;
+    DB.incOrCreateStat("global:cells_total", vault.getCells().length || 0);
     DB.incOrCreateStat(
       "global:rooms_total",
       this.vaults
@@ -79,8 +81,11 @@ export default class VaultManager {
       vault.broadcast(new LeavePacketCapsule(new LeavePacket(uuid)), player.uuid);
     });
 
-    ws.addEventListener("error", (error) => {
-      console.error(error);
+    ws.addEventListener("error", (_error) => {
+      // console.error(error);
+      console.log(`Player ${player.uuid} disconnected from ${vaultID} due to error`);
+      vault.removePlayer(player);
+      vault.broadcast(new LeavePacketCapsule(new LeavePacket(uuid)), player.uuid);
     });
 
     ws.addEventListener("message", (event) => {

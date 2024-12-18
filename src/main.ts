@@ -1,7 +1,9 @@
+import DB from "./DB.ts";
+await DB.init();
+
 import "jsr:@std/dotenv/load";
 import ColorCache from "./ColorCache.ts";
 import VaultManager from "./vaults/VaultManager.ts";
-import DB from "./DB.ts";
 
 await ColorCache.loadFromDB();
 
@@ -36,7 +38,12 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
   const uuid = url.pathname.split("/")[2];
   // ex. wss://vmsync.boykiss.ing/vault_0504c51e-421a-4512-ad28-2f67c865ac72/b66daa18-7360-4fd1-b60f-15a30cb0dccc
 
-  const username = (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`)).json()).name || "<Unknown Username>";
+  let username = "<Unknown Username>";
+  try {
+    username = (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${uuid}`)).json()).name;
+  } catch (_e) {
+    // noop
+  }
 
   if (!uuid || !vaultID) {
     if (Deno.env.get("WEBHOOK_URL")) {
@@ -76,7 +83,15 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
       VaultManager.getOrCreateVault(vaultID)
         .getPlayers()
         .map((player) => player.uuid)
-        .map(async (puuid) => ((await (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${puuid}`)).json()).name) as string) || "<Unknown Username>"),
+        .map(async (puuid) => {
+          let username = "<Unknown Username>";
+          try {
+            username = (await (await fetch(`https://sessionserver.mojang.com/session/minecraft/profile/${puuid}`)).json()).name;
+          } catch (_e) {
+            // noop
+          }
+          return username;
+        }),
     );
     players.push(username);
 

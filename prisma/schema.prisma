@@ -5,7 +5,7 @@ generator client {
 
 datasource db {
     provider = "sqlite"
-    url      = "file:../vmsync.db"
+    url      = "file:../vmsync.db?connection_limit=1&socket_timeout=10"
 }
 
 model Player {
