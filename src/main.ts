@@ -26,6 +26,8 @@ Deno.serve({ hostname: HOST, port: PORT }, async (req, info) => {
       return new Response(JSON.stringify({ total: currentVaults.length, currentVaults, stats }), {
         headers: { "content-type": "application/json" },
       });
+    } else if (new URL(req.url).pathname === "/ping") {
+      return new Response("pong", { headers: { "content-type": "text/plain" } });
     }
     return new Response(null, { status: 501 });
   }
