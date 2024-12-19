@@ -1,4 +1,4 @@
-package vaultmappersyncserver
+package main
 
 import (
 	"fmt"
