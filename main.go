@@ -27,9 +27,10 @@ func main() {
 		Marked:    false,
 	}
 
-	fmt.Println("Hello, World!" + vaultCell.String())
+	fmt.Println("Hello, World!\n" + vaultCell.String())
 
 	parseEnv()
+	fmt.Println(ipAddress, port)
 
 	VMServer.Serve(ipAddress, port)
 
