@@ -15,11 +15,13 @@ type Vault struct {
 }
 
 // AddConnection adds the connection to Vault structure and starts up the WritePump
-func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) {
+//
+// ok is false if the connection already exists, else false
+func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) bool {
 	_, ok := v.Connections.Load(playerUUID)
 	if ok {
 		log.Println("Tried to add connection but it already exists")
-		return // connection already exists
+		return false // connection already exists
 	}
 	c := &Connection{ // create connection
 		uuid: playerUUID,
@@ -29,6 +31,7 @@ func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) {
 
 	v.Connections.Store(playerUUID, c) // store the connection inside vault
 	go c.WritePump()                   // Start the write pump
+	return true
 }
 
 // RemoveConnection removes the connection from Vault structure and closes the Send channel

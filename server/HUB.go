@@ -42,9 +42,13 @@ func (h *Hub) RemoveVault(vaultID string) {
 	h.Vaults.Delete(vaultID)
 }
 
-func (h *Hub) AddConnectionToVault(vaultID string, playerUUID string, conn *websocket.Conn) {
+func (h *Hub) AddConnectionToVault(vaultID string, playerUUID string, conn *websocket.Conn) bool {
 	vault := h.GetOrCreateVault(vaultID)
-	vault.AddConnection(playerUUID, conn)
+	ok := vault.AddConnection(playerUUID, conn)
+	if !ok {
+		return false
+	}
+	return true
 }
 
 func (h *Hub) RemoveConnectionFromVault(vaultID string, playerUUID string) {
