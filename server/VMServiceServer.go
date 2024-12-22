@@ -47,6 +47,8 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	// conn.ReadMessage() reads the message, works like onMessage
 	// use onClose to do stuff after closing socket
 
+	HUB.AddConnectionToVault(vaultID, uuid, conn)
+
 	defer onClose(uuid, vaultID)
 
 	// this should basically be the onMessage thingy
@@ -94,6 +96,7 @@ func onMessage(uuid string, msg *pb.Message) {
 
 func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnect to others in vault here
 	log.Println(uuid + " closed connection to vault: " + vaultID)
+	HUB.RemoveConnectionFromVault(vaultID, uuid)
 }
 
 // handlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
