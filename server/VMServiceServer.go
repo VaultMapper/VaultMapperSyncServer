@@ -119,6 +119,21 @@ func handleVaultCell(uuid string, msg *pb.Message) {
 
 // broadcastMessage is used to broadcast Message to a vault, with excludeUUID being excluded
 func broadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
+	vault := HUB.GetVault(vaultID) // get vault
+	if vault == nil {
+		return
+	}
+	messageBuffer, err := proto.Marshal(msg) // serialize message into buffer
+	if err != nil {
+		return
+	}
+	vault.Connections.Range(func(key, val interface{}) bool { // go through connections and add to their Send channels
+		if key != excludeUUID {
+			conn := val.(*Connection)
+			conn.Send <- messageBuffer
+		}
+		return true
+	})
 }
 
 func Run(ip string, port int) {
