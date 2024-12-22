@@ -75,8 +75,16 @@ func main() {
 	if err != nil {
 		return
 	}
-	defer f.Close()
-	f.Write(data)
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+
+		}
+	}(f)
+
+	if _, err = f.Write(data); err != nil {
+		return
+	}
 
 	parseEnv()
 	fmt.Println(ipAddress, port)
