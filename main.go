@@ -32,16 +32,8 @@ func main() {
 	parseEnv()
 	fmt.Println(ipAddress, port)
 
-	VMServer.Serve(ipAddress, port)
+	VMServer.Run(ipAddress, port)
 
-	/*
-		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
-		}
-		s := grpc.NewServer()
-		s.Serve(lis)
-		pb.RegisterVMServiceServer(s, &server)*/
 }
 
 // parseEnv() parses environment variables and reverts to defaults if necessary
@@ -60,13 +52,3 @@ func parseEnv() {
 		}
 	}
 }
-
-/*
-type server struct {
-	pb.UnimplementedVMServiceServer
-}
-
-func (s *server) NewVaultCell(ctx context.Context, req *pb.VaultCell) (*pb.VaultCell, error) {
-	// Handle the new cell
-	return &pb.VaultCell{}, nil
-}*/
