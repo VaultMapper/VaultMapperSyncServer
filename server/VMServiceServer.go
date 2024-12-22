@@ -2,9 +2,10 @@ package server
 
 import (
 	"fmt"
-	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
+	//pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/dynamicpb"
 	"log"
 	"regexp"
 
@@ -55,7 +56,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Failed to read: " + err.Error())
 			return
 		}
-		var msg pb.Message
+		var msg dynamicpb.Message
 		err2 := proto.Unmarshal(data, &msg)
 		if err2 != nil {
 			log.Println("Marshal problem")
@@ -66,8 +67,8 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func onMessage(uuid string, msg pb.Message) {
-	log.Printf("\nOn message from %s\ntype: %v\ndata: %v\n", uuid, msg.GetType(), msg.GetContent())
+func onMessage(uuid string, msg dynamicpb.Message) {
+	log.Printf("\nOn message from %s\ntype: %v\ndata: %v\n", uuid, msg.Type(), msg.String())
 }
 
 func onClose(uuid string, vaultID string) {
