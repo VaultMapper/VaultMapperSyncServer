@@ -104,6 +104,11 @@ func onMessage(vaultID string, uuid string, msg *pb.Message) {
 
 func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnect to others in vault here
 	log.Println(uuid + " closed connection to vault: " + vaultID)
+	msg := pb.Message{
+		Type: pb.MessageType_PLAYER_DISCONNECT,
+	}
+	msg.Content = &pb.PlayerDisconnect{Uuid: uuid}
+	broadcastMessage(vaultID, uuid, &msg)
 	HUB.RemoveConnectionFromVault(vaultID, uuid)
 }
 
