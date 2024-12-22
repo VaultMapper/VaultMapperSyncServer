@@ -85,6 +85,9 @@ func onMessage(uuid string, msg *pb.Message) {
 		// this shouldn't happen as the Vault is only S2C
 		log.Println(uuid + " tried to send Vault which shouldn't happen")
 		break
+	default:
+		log.Println(uuid + " sent unknown packet")
+		break
 	}
 }
 
@@ -94,10 +97,12 @@ func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnec
 
 // handlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
 func handlePlayerMovement(uuid string, msg *pb.Message) {
+	log.Println("Handling PlayerMovement")
 }
 
 // handleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
 func handleVaultCell(uuid string, msg *pb.Message) {
+	log.Println("Handling VaultCell")
 }
 
 // broadcastMessage is used to broadcast Message to a vault, with excludeUUID being excluded

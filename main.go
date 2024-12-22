@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/NodiumHosting/VaultMapperSyncServer/render"
+	VMServer "github.com/NodiumHosting/VaultMapperSyncServer/server"
 	"github.com/joho/godotenv"
 	"math/rand"
 	"os"
@@ -89,7 +90,7 @@ func main() {
 	parseEnv()
 	fmt.Println(ipAddress, port)
 
-	//VMServer.Run(ipAddress, port)
+	VMServer.Run(ipAddress, port)
 }
 
 // parseEnv() parses environment variables and reverts to defaults if necessary
