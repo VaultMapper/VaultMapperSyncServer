@@ -63,15 +63,45 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		onMessage(uuid, &msg)
 	}
-
 }
 
 func onMessage(uuid string, msg *pb.Message) {
 	log.Printf("\nOn message from %s\ntype: %v\ndata: %v\n", uuid, msg.GetType(), msg.GetContent())
+	msgType := msg.GetType()
+	switch msgType {
+	case pb.MessageType_VAULT_PLAYER:
+		// this case handles accepted player packet
+		handlePlayerMovement(uuid, msg)
+		break
+	case pb.MessageType_VAULT_CELL:
+		// This case should handle accepted VaultCell
+		handleVaultCell(uuid, msg)
+		break
+	case pb.MessageType_PLAYER_DISCONNECT:
+		// this shouldn't happen as PlayerDisconnect is only S2C
+		log.Println(uuid + " tried to send PlayerDisconnect which shouldn't happen")
+		break
+	case pb.MessageType_VAULT:
+		// this shouldn't happen as the Vault is only S2C
+		log.Println(uuid + " tried to send Vault which shouldn't happen")
+		break
+	}
 }
 
-func onClose(uuid string, vaultID string) {
+func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnect to others in vault here
 	log.Println(uuid + " closed connection to vault: " + vaultID)
+}
+
+// handlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
+func handlePlayerMovement(uuid string, msg *pb.Message) {
+}
+
+// handleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
+func handleVaultCell(uuid string, msg *pb.Message) {
+}
+
+// broadcastMessage is used to broadcast Message to a vault, with excludeUUID being excluded
+func broadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 }
 
 func Run(ip string, port int) {
