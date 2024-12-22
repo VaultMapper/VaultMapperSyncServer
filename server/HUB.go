@@ -42,6 +42,7 @@ func (h *Hub) RemoveVault(vaultID string) {
 	h.Vaults.Delete(vaultID)
 }
 
+// AddConnectionToVault is a helper method that adds vault connection including vault creation if needed
 func (h *Hub) AddConnectionToVault(vaultID string, playerUUID string, conn *websocket.Conn) bool {
 	vault := h.GetOrCreateVault(vaultID)
 	ok := vault.AddConnection(playerUUID, conn)
@@ -51,6 +52,7 @@ func (h *Hub) AddConnectionToVault(vaultID string, playerUUID string, conn *webs
 	return true
 }
 
+// RemoveConnectionFromVault is a helper method that removes connection from vault including checks for empty vault
 func (h *Hub) RemoveConnectionFromVault(vaultID string, playerUUID string) {
 	vault := h.GetVault(vaultID)
 	if vault == nil {
