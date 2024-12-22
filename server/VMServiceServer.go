@@ -61,12 +61,12 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Marshal problem")
 			return
 		}
-		onMessage(uuid, msg)
+		onMessage(uuid, &msg)
 	}
 
 }
 
-func onMessage(uuid string, msg pb.Message) {
+func onMessage(uuid string, msg *pb.Message) {
 	log.Printf("\nOn message from %s\ntype: %v\ndata: %v\n", uuid, msg.GetType(), msg.GetContent())
 }
 
