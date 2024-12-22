@@ -39,7 +39,7 @@ func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) {
 func (v *Vault) RemoveConnection(playerUUID string) bool {
 	value, ok := v.Connections.Load(playerUUID)
 	if !ok {
-		return false // connection not found in vault, nothing to remove
+		return false
 	}
 
 	c := value.(*Connection)
