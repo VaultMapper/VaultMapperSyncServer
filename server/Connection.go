@@ -22,7 +22,7 @@ func (c *Connection) WritePump() {
 		// ok will be false in case the Send channel is closed
 		if !ok {
 			// channel is closed, send close message and return
-			c.conn.WriteMessage(websocket.CloseMessage, nil)
+			_ = c.conn.WriteMessage(websocket.CloseMessage, nil)
 			return
 		}
 		// write a message to the connection
