@@ -47,7 +47,15 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	// conn.ReadMessage() reads the message, works like onMessage
 	// use onClose to do stuff after closing socket
 
-	HUB.AddConnectionToVault(vaultID, uuid, conn)
+	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
+	if !ok { // if not ok -> connection exists -> return/close connection
+		_ = conn.WriteMessage(websocket.CloseMessage, nil)
+		err := conn.Close()
+		if err != nil {
+			return
+		}
+		return
+	}
 
 	defer onClose(uuid, vaultID)
 
