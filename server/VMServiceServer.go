@@ -47,6 +47,8 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	// conn.ReadMessage() reads the message, works like onMessage
 	// use onClose to do stuff after closing socket
 
+	SendVault(vaultID, conn) // send vault to client
+
 	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
 	if !ok { // if not ok -> connection exists -> return/close connection
 		_ = conn.WriteMessage(websocket.CloseMessage, nil)
@@ -77,16 +79,16 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func onMessage(vaultID string, uuid string, msg *pb.Message) {
-	log.Printf("\nOn message from %s\ntype: %v\ndata: %v\n", uuid, msg.GetType(), msg.GetContent())
+	log.Printf("\nOn message from %s\ntype: %v\n", uuid, msg.GetType())
 	msgType := msg.GetType()
 	switch msgType {
 	case pb.MessageType_VAULT_PLAYER:
 		// this case handles accepted player packet
-		handlePlayerMovement(vaultID, uuid, msg)
+		HandlePlayerMovement(vaultID, uuid, msg)
 		break
 	case pb.MessageType_VAULT_CELL:
 		// This case should handle accepted VaultCell
-		handleVaultCell(vaultID, uuid, msg)
+		HandleVaultCell(vaultID, uuid, msg)
 		break
 	case pb.MessageType_PLAYER_DISCONNECT:
 		// this shouldn't happen as PlayerDisconnect is only S2C
@@ -105,27 +107,33 @@ func onMessage(vaultID string, uuid string, msg *pb.Message) {
 func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnect to others in vault here
 	log.Println(uuid + " closed connection to vault: " + vaultID)
 	msg := pb.Message{
-		Type: pb.MessageType_PLAYER_DISCONNECT,
+		Type:             pb.MessageType_PLAYER_DISCONNECT,
+		PlayerDisconnect: &pb.PlayerDisconnect{Uuid: uuid},
 	}
-	msg.Content = &pb.PlayerDisconnect{Uuid: uuid}
-	broadcastMessage(vaultID, uuid, &msg)
+	BroadcastMessage(vaultID, uuid, &msg)
 	HUB.RemoveConnectionFromVault(vaultID, uuid)
 }
 
-// handlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
-func handlePlayerMovement(vaultID string, uuid string, msg *pb.Message) {
+// HandlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
+func HandlePlayerMovement(vaultID string, uuid string, msg *pb.Message) {
 	log.Println("Handling PlayerMovement")
-	broadcastMessage(vaultID, uuid, msg)
+	BroadcastMessage(vaultID, uuid, msg)
 }
 
-// handleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
-func handleVaultCell(vaultID string, uuid string, msg *pb.Message) {
+// HandleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
+func HandleVaultCell(vaultID string, uuid string, msg *pb.Message) {
 	log.Println("Handling VaultCell")
-	broadcastMessage(vaultID, uuid, msg)
+	BroadcastMessage(vaultID, uuid, msg)
+	vault := HUB.GetVault(vaultID)
+	if vault == nil {
+		return
+	}
+	cell := msg.GetVaultCell()
+	vault.AddOrReplaceCell(cell)
 }
 
-// broadcastMessage is used to broadcast Message to a vault, with excludeUUID being excluded
-func broadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
+// BroadcastMessage is used to broadcast Message to a vault, with excludeUUID being excluded
+func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 	vault := HUB.GetVault(vaultID) // get vault
 	if vault == nil {
 		return
@@ -134,13 +142,43 @@ func broadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 	if err != nil {
 		return
 	}
+	log.Println("Buffer ready, broadcasting")
 	vault.Connections.Range(func(key, val interface{}) bool { // go through connections and add to their Send channels
 		if key != excludeUUID {
 			conn := val.(*Connection)
 			conn.Send <- messageBuffer
+			log.Println("sent to buffer")
 		}
 		return true
 	})
+}
+
+// SendVault sends all the Vault.Cells using the Vault message type initially to sync vault to client if joined after start
+func SendVault(vaultID string, conn *websocket.Conn) {
+	vault := HUB.GetVault(vaultID)
+	if vault == nil {
+		return // if vault doesn't exist, do nothing - this can happen when this is the first player joining a fresh vault
+	}
+	var cells []*pb.VaultCell
+	vault.Cells.Range(func(key, val interface{}) bool {
+		cells = append(cells, val.(*pb.VaultCell))
+		return true
+	})
+
+	msg := pb.Message{
+		Type:  pb.MessageType_VAULT,
+		Vault: &pb.Vault{Cells: cells},
+	}
+
+	messageBuffer, err := proto.Marshal(&msg)
+	if err != nil {
+		return
+	}
+
+	errr := conn.WriteMessage(websocket.BinaryMessage, messageBuffer)
+	if errr != nil {
+		return
+	}
 }
 
 func Run(ip string, port int) {
