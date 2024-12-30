@@ -90,6 +90,8 @@ func main() {
 	parseEnv()
 	fmt.Println(ipAddress, port)
 
+	VMServer.InitDB()
+
 	VMServer.Run(ipAddress, port)
 }
 

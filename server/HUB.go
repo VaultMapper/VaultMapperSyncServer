@@ -1,7 +1,12 @@
 package server
 
 import (
+	"errors"
+	"fmt"
+	"github.com/NodiumHosting/VaultMapperSyncServer/models"
+	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 	"log"
 	"sync"
 )
@@ -15,10 +20,51 @@ type Hub struct {
 
 // GetOrCreateVault is a helper method that gets and optionally creates Vault inside Hub
 func (h *Hub) GetOrCreateVault(vaultID string) *Vault {
-	vault, _ := h.Vaults.LoadOrStore(vaultID, &Vault{
+	vault, loaded := h.Vaults.LoadOrStore(vaultID, &Vault{
 		UUID: vaultID,
 	})
 	v := vault.(*Vault) // assert type of vault
+
+	if !loaded { // if vault was created, check if there's stuff to load
+		var dbVault models.Vault
+		result := DB.Preload("Cells").First(&dbVault, "vault_id = ?", vaultID)
+
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				log.Printf("Vault %s not found in database, creating new\n", vaultID)
+				dbVault = models.Vault{
+					VaultID: vaultID,
+					Cells:   []models.VaultCell{},
+				}
+				if err := DB.Create(&dbVault).Error; err != nil {
+					log.Println("Error creating new vault in DB: ", err)
+					return v
+				}
+				return v
+			}
+			log.Println("Error querying DB: ", result.Error)
+			return v
+		}
+		var cells []models.VaultCell
+		DB.Find(&cells, "vault_id = ?", vaultID)
+		// if vault was found, load cells
+		for _, cell := range cells {
+			pbCell := &pb.VaultCell{
+				X:         cell.X,
+				Z:         cell.Z,
+				CellType:  pb.CellType(cell.CellType),
+				RoomType:  pb.RoomType(cell.RoomType),
+				RoomName:  pb.RoomName(cell.RoomName),
+				Explored:  cell.Explored,
+				Inscribed: cell.Inscribed,
+				Marked:    cell.Marked,
+			}
+			key := fmt.Sprintf("%d,%d", pbCell.X, pbCell.Z)
+			v.Cells.Store(key, pbCell)
+			log.Printf("Loaded cell from DB: %s\n", key)
+		}
+		log.Printf("Loaded vault from DB: %s\n", vaultID)
+	}
 	return v
 }
 

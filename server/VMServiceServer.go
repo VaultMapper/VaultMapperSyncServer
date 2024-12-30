@@ -47,9 +47,10 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	// conn.ReadMessage() reads the message, works like onMessage
 	// use onClose to do stuff after closing socket
 
+	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
+
 	SendVault(vaultID, conn) // send vault to client
 
-	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
 	if !ok { // if not ok -> connection exists -> return/close connection
 		_ = conn.WriteMessage(websocket.CloseMessage, nil)
 		err := conn.Close()
@@ -157,11 +158,14 @@ func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 func SendVault(vaultID string, conn *websocket.Conn) {
 	vault := HUB.GetVault(vaultID)
 	if vault == nil {
+		log.Println("Tried to send vault that doesn't exist")
 		return // if vault doesn't exist, do nothing - this can happen when this is the first player joining a fresh vault
 	}
+	log.Println("Sending vault to client")
 	var cells []*pb.VaultCell
 	vault.Cells.Range(func(key, val interface{}) bool {
 		cells = append(cells, val.(*pb.VaultCell))
+		log.Println("appended cell")
 		return true
 	})
 

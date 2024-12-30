@@ -1,9 +1,12 @@
 package server
 
 import (
+	"errors"
 	"fmt"
+	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
+	"gorm.io/gorm"
 	"log"
 	"sync"
 )
@@ -73,6 +76,51 @@ func (v *Vault) RemoveConnection(playerUUID string) bool {
 func (v *Vault) AddOrReplaceCell(cell *pb.VaultCell) {
 	key := fmt.Sprintf("%d,%d", cell.X, cell.Z)
 	v.Cells.Store(key, cell)
+
+	// Add/Update in db
+	// Convert the proto cell to a database model cell
+	dbCell := &models.VaultCell{
+		VaultID:   v.UUID,
+		X:         cell.X,
+		Z:         cell.Z,
+		CellType:  int32(cell.CellType),
+		RoomType:  int32(cell.RoomType),
+		RoomName:  int32(cell.RoomName),
+		Explored:  cell.Explored,
+		Inscribed: cell.Inscribed,
+		Marked:    cell.Marked,
+	}
+
+	// Check if the cell already exists in the database
+	var existingCell models.VaultCell
+	result := DB.First(&existingCell, "vault_id = ? AND x = ? AND z = ?", v.UUID, cell.X, cell.Z)
+	log.Println("HELLO")
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		log.Println("fuck off")
+		log.Println(result.Error)
+		log.Println("fuck off")
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		// Cell does not exist, create a new one
+		log.Println("Creating cell")
+		if err := DB.Create(dbCell).Error; err != nil {
+			log.Println(err)
+		}
+	} else {
+		// Cell exists, update it
+		log.Println("found, updating")
+		existingCell.CellType = dbCell.CellType
+		existingCell.RoomType = dbCell.RoomType
+		existingCell.RoomName = dbCell.RoomName
+		existingCell.Explored = dbCell.Explored
+		existingCell.Inscribed = dbCell.Inscribed
+		existingCell.Marked = dbCell.Marked
+		if err := DB.Save(&existingCell).Error; err != nil {
+			log.Println(err)
+		}
+	}
 }
 
 // RemoveCell removes a VaultCell from the Cells map
