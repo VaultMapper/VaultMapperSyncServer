@@ -11,7 +11,8 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	DB, err := gorm.Open(sqlite.Open("file:vaults.db?_journal_mode=WAL"), &gorm.Config{})
+	var err error
+	DB, err = gorm.Open(sqlite.Open("file:vaults.db?_journal_mode=WAL"), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database")
 	}
