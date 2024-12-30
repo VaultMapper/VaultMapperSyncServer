@@ -92,7 +92,10 @@ func main() {
 
 	VMServer.InitDB()
 
+	VMServer.RunTerminal()
+
 	VMServer.Run(ipAddress, port)
+
 }
 
 // parseEnv() parses environment variables and reverts to defaults if necessary
