@@ -69,6 +69,10 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// this should basically be the onMessage thingy
 	for {
+		err := conn.SetReadDeadline(time.Now().Add(15 * time.Second))
+		if err != nil {
+			return
+		}
 		_, data, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Failed to read: " + err.Error())
@@ -129,12 +133,25 @@ func HandlePlayerMovement(vaultID string, uuid string, msg *pb.Message) {
 // HandleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
 func HandleVaultCell(vaultID string, uuid string, msg *pb.Message) {
 	log.Println("Handling VaultCell")
+	cell := msg.GetVaultCell()
+	if cell.GetCellType() == pb.CellType_CELLTYPE_ROOM {
+		if cell.GetX()%2 != 0 || cell.GetZ()%2 != 0 {
+			log.Println("Sent invalid room cell", uuid)
+			return
+		}
+	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_Z || cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_X {
+		if cell.GetX()%2 != 1 || cell.GetZ()%2 != 1 {
+			log.Println("Sent invalid tunnel cell", uuid)
+			return
+		}
+	}
+
 	BroadcastMessage(vaultID, uuid, msg)
 	vault := HUB.GetVault(vaultID)
 	if vault == nil {
 		return
 	}
-	cell := msg.GetVaultCell()
+
 	vault.AddOrReplaceCell(cell)
 }
 
