@@ -114,6 +114,10 @@ func onMessage(vaultID string, uuid string, msg *pb.Message) {
 		// this shouldn't happen as the Vault is only S2C
 		log.Println(uuid + " tried to send Vault which shouldn't happen")
 		break
+	case pb.MessageType_TOAST:
+		// this shouldn't happen as the Toast is only S2C
+		log.Println(uuid + " tried to send Toast which shouldn't happen")
+		break
 	default:
 		log.Println(uuid + " sent unknown packet")
 		break
