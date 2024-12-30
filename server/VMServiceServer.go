@@ -237,7 +237,7 @@ var (
 )
 
 func updateStatsCache() {
-	log.Println("Updating stats cache")
+	//log.Println("Updating stats cache")
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
 
