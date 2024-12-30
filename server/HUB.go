@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/NodiumHosting/VaultMapperSyncServer/dswh"
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
@@ -85,6 +86,20 @@ func (h *Hub) GetVault(vaultID string) *Vault {
 //
 // Only call this if the Vault is empty, otherwise will leave dangling connections and send channels
 func (h *Hub) RemoveVault(vaultID string) {
+	vault := HUB.GetVault(vaultID)
+	if vault == nil {
+		log.Println("Tried to send vault that doesn't exist")
+		return // if vault doesn't exist, do nothing - this can happen when this is the first player joining a fresh vault
+	}
+	log.Println("Sending vault to client")
+	var cells []*pb.VaultCell
+	vault.Cells.Range(func(key, val interface{}) bool {
+		cells = append(cells, val.(*pb.VaultCell))
+		log.Println("appended cell")
+		return true
+	})
+	dswh.SendMap(cells, vaultID)
+
 	h.Vaults.Delete(vaultID)
 }
 
