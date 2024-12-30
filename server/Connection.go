@@ -28,7 +28,7 @@ func (c *Connection) WritePump() {
 			return
 		}
 		// write a message to the connection
-		log.Println("writing message to connection")
+		//log.Println("writing message to connection")
 		if err := c.conn.WriteMessage(websocket.BinaryMessage, msgBytes); err != nil {
 			// close in case of errors
 			log.Println("error, closing pump")

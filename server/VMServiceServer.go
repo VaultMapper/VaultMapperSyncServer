@@ -78,6 +78,12 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Failed to read: " + err.Error())
 			return
 		}
+
+		if string(data) == "keep_me_alive" {
+			//log.Println("Keep alive received")
+			continue
+		}
+
 		var msg pb.Message
 		err2 := proto.Unmarshal(data, &msg)
 		if err2 != nil {
@@ -89,7 +95,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func onMessage(vaultID string, uuid string, msg *pb.Message) {
-	log.Printf("\nOn message from %s\ntype: %v\n", uuid, msg.GetType())
+	//log.Printf("\nOn message from %s\ntype: %v\n", uuid, msg.GetType())
 	msgType := msg.GetType()
 	switch msgType {
 	case pb.MessageType_VAULT_PLAYER:
@@ -126,8 +132,15 @@ func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnec
 
 // HandlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
 func HandlePlayerMovement(vaultID string, uuid string, msg *pb.Message) {
-	log.Println("Handling PlayerMovement")
+	//log.Println("Handling PlayerMovement")
 	BroadcastMessage(vaultID, uuid, msg)
+}
+
+func Abs(x int32) int32 {
+	if x < 0 {
+		return -x
+	}
+	return x
 }
 
 // HandleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
@@ -139,9 +152,14 @@ func HandleVaultCell(vaultID string, uuid string, msg *pb.Message) {
 			log.Println("Sent invalid room cell", uuid)
 			return
 		}
-	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_Z || cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_X {
-		if cell.GetX()%2 != 1 || cell.GetZ()%2 != 1 {
-			log.Println("Sent invalid tunnel cell", uuid)
+	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_X {
+		if Abs(cell.GetX())%2 != 1 || cell.GetZ()%2 != 0 {
+			log.Println("Sent invalid tunnel cellz", uuid)
+			return
+		}
+	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_Z {
+		if cell.GetX()%2 != 0 || Abs(cell.GetZ())%2 != 1 {
+			log.Println("Sent invalid tunnel cellx", uuid)
 			return
 		}
 	}
@@ -165,12 +183,12 @@ func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 	if err != nil {
 		return
 	}
-	log.Println("Buffer ready, broadcasting")
+	//log.Println("Buffer ready, broadcasting")
 	vault.Connections.Range(func(key, val interface{}) bool { // go through connections and add to their Send channels
 		if key != excludeUUID {
 			conn := val.(*Connection)
 			conn.Send <- messageBuffer
-			log.Println("sent to buffer")
+			//log.Println("sent to buffer")
 		}
 		return true
 	})
@@ -187,7 +205,7 @@ func SendVault(vaultID string, conn *websocket.Conn) {
 	var cells []*pb.VaultCell
 	vault.Cells.Range(func(key, val interface{}) bool {
 		cells = append(cells, val.(*pb.VaultCell))
-		log.Println("appended cell")
+		//log.Println("appended cell")
 		return true
 	})
 

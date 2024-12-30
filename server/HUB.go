@@ -61,7 +61,7 @@ func (h *Hub) GetOrCreateVault(vaultID string) *Vault {
 			}
 			key := fmt.Sprintf("%d,%d", pbCell.X, pbCell.Z)
 			v.Cells.Store(key, pbCell)
-			log.Printf("Loaded cell from DB: %s\n", key)
+			//log.Printf("Loaded cell from DB: %s\n", key)
 		}
 		log.Printf("Loaded vault from DB: %s\n", vaultID)
 	}
