@@ -72,7 +72,7 @@ func main() {
 		return
 	}
 	//save to out.png
-	f, err := os.Create("out.png")
+	f, err := os.Create("test.png")
 	if err != nil {
 		return
 	}

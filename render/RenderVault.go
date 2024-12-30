@@ -2,7 +2,6 @@ package render
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/NodiumHosting/VaultMapperSyncServer/icons"
 	"github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/fogleman/gg"
@@ -55,9 +54,6 @@ func drawCell(dc *gg.Context, cell *proto.VaultCell, res int) {
 
 	x := float64(cell.X)
 	z := float64(cell.Z)
-
-	fmt.Println("Drawing cell at x:", middle+x*cellSize, "z:", middle+z*cellSize)
-	fmt.Println("middle ", middle, "cellSize ", cellSize)
 
 	color := getCellColor(cell)
 	dc.SetRGB(color[0], color[1], color[2])

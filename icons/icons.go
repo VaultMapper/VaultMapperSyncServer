@@ -1,9 +1,12 @@
 package icons
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"image"
 	"os"
+	"path/filepath"
 )
 
 var iconMap = map[proto.RoomName]image.Image{
@@ -30,19 +33,52 @@ func GetIcon(roomName *proto.RoomName) image.Image {
 	return iconMap[*roomName]
 }
 
-func ReadIcon(path string) image.Image {
-	file, err := os.Open(path)
+func ReadIcon(relPath string) image.Image {
+	img := readIcon(relPath)
+	if img == nil {
+		fmt.Println("Error reading icon: ", relPath)
+	}
+	return img
+}
+
+func readIcon(relPath string) image.Image {
+	path, err := filepath.Abs(relPath)
 	if err != nil {
+		//fmt.Println("Error getting relative path: ", err)
 		return nil
 	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		//fmt.Println("Error reading icon file: ", err)
+		return nil
+	}
+
+	info, err := file.Stat()
+	if err != nil {
+		//fmt.Println("Error getting file info: ", err)
+		return nil
+	}
+
+	size := info.Size()
+
+	imgData := make([]byte, size)
+	_, err = file.Read(imgData)
+	if err != nil {
+		//fmt.Println("Error reading file: ", err)
+		return nil
+	}
+
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
+			//fmt.Println("Error closing file: ", err)
 			return
 		}
 	}(file)
-	img, _, err := image.Decode(file)
+	img, _, err := image.Decode(bytes.NewReader(imgData))
 	if err != nil {
+		//fmt.Println("Error decoding image: ", err)
 		return nil
 	}
 	return img
