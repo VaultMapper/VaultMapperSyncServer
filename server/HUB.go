@@ -7,6 +7,7 @@ import (
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
+	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
 	"log"
 	"sync"
@@ -124,4 +125,21 @@ func (h *Hub) RemoveConnectionFromVault(vaultID string, playerUUID string) {
 	if empty {
 		h.RemoveVault(vaultID)
 	}
+}
+
+func (h *Hub) BroadcastToast(text string) {
+	message := pb.Message{Type: pb.MessageType_TOAST, Toast: &pb.Toast{Message: text}}
+	messageBuffer, err := proto.Marshal(&message)
+	if err != nil {
+		return
+	}
+	h.Vaults.Range(func(k, v interface{}) bool {
+		vault := v.(*Vault)
+		vault.Connections.Range(func(k, v interface{}) bool {
+			conn := v.(*Connection)
+			conn.Send <- messageBuffer
+			return true
+		})
+		return true
+	})
 }
