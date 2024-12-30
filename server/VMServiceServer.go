@@ -5,9 +5,12 @@ import (
 	"fmt"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
+	"golang.org/x/time/rate"
 	"google.golang.org/protobuf/proto"
 	"log"
 	"regexp"
+	"sync"
+	"time"
 
 	"net/http"
 )
@@ -187,15 +190,24 @@ func SendVault(vaultID string, conn *websocket.Conn) {
 	}
 }
 
-func statsHandler(w http.ResponseWriter, r *http.Request) {
+var (
+	statsCache      map[string]interface{}
+	cacheExpiration time.Time
+	cacheMutex      sync.Mutex
+	cacheDuration   = 10 * time.Second // Cache duration
+)
+
+func updateStatsCache() {
+	log.Println("Updating stats cache")
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
 	stats := make(map[string]interface{})
 
 	uniquePlayerCount, err := GetTotalPlayerCount()
-	if err != nil {
-		http.Error(w, "Failed to get unique player count", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["unique_player_count"] = uniquePlayerCount
 	}
-	stats["unique_player_count"] = uniquePlayerCount
 
 	activeVaults := getActiveVaults()
 	stats["active_vaults"] = activeVaults
@@ -210,61 +222,58 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	stats["active_rooms"] = activeRooms
 
 	biggestParty, err := GetBiggestParty()
-	if err != nil {
-		http.Error(w, "Failed to get biggest party", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["biggest_party"] = biggestParty
 	}
-	stats["biggest_party"] = biggestParty
 
-	// Add new stats here
 	totalVaults, err := GetTotalVaults()
-	if err != nil {
-		http.Error(w, "Failed to get total vaults", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["total_vaults"] = totalVaults
 	}
-	stats["total_vaults"] = totalVaults
 
 	totalRooms, err := GetTotalRooms()
-	if err != nil {
-		http.Error(w, "Failed to get total rooms", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["total_rooms"] = totalRooms
 	}
-	stats["total_rooms"] = totalRooms
 
 	totalRoomsBasic, err := GetTotalRoomsBasic()
-	if err != nil {
-		http.Error(w, "Failed to get total basic rooms", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["total_rooms_basic"] = totalRoomsBasic
 	}
-	stats["total_rooms_basic"] = totalRoomsBasic
 
 	totalRoomsOre, err := GetTotalRoomsOre()
-	if err != nil {
-		http.Error(w, "Failed to get total ore rooms", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["total_rooms_ore"] = totalRoomsOre
 	}
-	stats["total_rooms_ore"] = totalRoomsOre
 
 	totalRoomsChallenge, err := GetTotalRoomsChallenge()
-	if err != nil {
-		http.Error(w, "Failed to get total challenge rooms", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["total_rooms_challenge"] = totalRoomsChallenge
 	}
-	stats["total_rooms_challenge"] = totalRoomsChallenge
 
 	totalRoomsOmega, err := GetTotalRoomsOmega()
-	if err != nil {
-		http.Error(w, "Failed to get total omega rooms", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["total_rooms_omega"] = totalRoomsOmega
 	}
-	stats["total_rooms_omega"] = totalRoomsOmega
 
 	largestVaultCount, err := GetLargestVault()
-	if err != nil {
-		http.Error(w, "Failed to get largest vault", http.StatusInternalServerError)
-		return
+	if err == nil {
+		stats["largest_vault"] = largestVaultCount
 	}
-	stats["largest_vault"] = largestVaultCount
+
+	statsCache = stats
+	cacheExpiration = time.Now().Add(cacheDuration)
+}
+
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	cacheMutex.Lock()
+	if time.Now().After(cacheExpiration) {
+		cacheMutex.Unlock()
+		updateStatsCache()
+		cacheMutex.Lock()
+	}
+	stats := statsCache
+	cacheMutex.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(stats); err != nil {
@@ -272,11 +281,30 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+var (
+	limiter = rate.NewLimiter(5, 10) // 1 request per second with a burst of 5
+	mu      sync.Mutex
+)
+
+func rateLimit(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		defer mu.Unlock()
+
+		if !limiter.Allow() {
+			http.Error(w, "Too many requests", http.StatusTooManyRequests)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func Run(ip string, port int) {
 	fmt.Println("HELLO FROM SERVER")
 
 	http.HandleFunc("/", handshakeHandler)
-	http.HandleFunc("/stats", statsHandler)
+	http.Handle("/stats", rateLimit(http.HandlerFunc(statsHandler)))
 	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), nil); err != nil {
 		log.Fatal(err)
 	}
