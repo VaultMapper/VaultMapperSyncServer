@@ -6,6 +6,7 @@ import (
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
+	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
 	"log"
 	"sync"
@@ -145,6 +146,19 @@ func (v *Vault) IterateCells(f func(key string, cell *pb.VaultCell)) { // iterat
 		key := k.(string)
 		cell := v.(*pb.VaultCell)
 		f(key, cell)
+		return true
+	})
+}
+
+func (v *Vault) BroadcastToast(text string) {
+	message := pb.Message{Type: pb.MessageType_TOAST, Toast: &pb.Toast{Message: text}}
+	messageBuffer, err := proto.Marshal(&message)
+	if err != nil {
+		return
+	}
+	v.Connections.Range(func(k, v interface{}) bool {
+		conn := v.(*Connection)
+		conn.Send <- messageBuffer
 		return true
 	})
 }
