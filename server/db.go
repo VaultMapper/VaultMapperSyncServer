@@ -17,7 +17,7 @@ func InitDB() {
 		log.Fatal("failed to connect database")
 	}
 
-	err1 := DB.AutoMigrate(&models.Vault{}, &models.VaultCell{})
+	err1 := DB.AutoMigrate(&models.Vault{}, &models.VaultCell{}, &models.PlayerVault{}, &models.Player{})
 	if err1 != nil {
 		return
 	}
@@ -46,6 +46,30 @@ func SaveVault(vault *models.Vault) error {
 		if err := DB.Save(&existingVault).Error; err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func AddPlayer(uuid string) error {
+	player := models.Player{UUID: uuid}
+	return DB.Create(&player).Error
+}
+
+// AddPlayerToVault adds a player to a vault inside the db for stats keeping purposes, if needed creates the player record
+func AddPlayerToVault(playerUUID string, vaultID string) error {
+	res := DB.Find(&models.Player{}, "uuid = ?", playerUUID)
+	if res.RowsAffected == 0 {
+		err := AddPlayer(playerUUID)
+		if err != nil {
+			return err
+		}
+	}
+	var playerVault models.PlayerVault
+	result := DB.First(&playerVault, "player_uuid = ? AND vault_id = ?", playerUUID, vaultID)
+	if result.RowsAffected == 0 {
+		playerVault = models.PlayerVault{PlayerUUID: playerUUID, VaultID: vaultID}
+		return DB.Create(&playerVault).Error
 	}
 
 	return nil

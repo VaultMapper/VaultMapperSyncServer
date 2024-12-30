@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
@@ -48,6 +49,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	// use onClose to do stuff after closing socket
 
 	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
+	_ = AddPlayerToVault(uuid, vaultID) // add player to vault db
 
 	SendVault(vaultID, conn) // send vault to client
 
@@ -185,10 +187,96 @@ func SendVault(vaultID string, conn *websocket.Conn) {
 	}
 }
 
+func statsHandler(w http.ResponseWriter, r *http.Request) {
+	stats := make(map[string]interface{})
+
+	uniquePlayerCount, err := GetTotalPlayerCount()
+	if err != nil {
+		http.Error(w, "Failed to get unique player count", http.StatusInternalServerError)
+		return
+	}
+	stats["unique_player_count"] = uniquePlayerCount
+
+	activeVaults := getActiveVaults()
+	stats["active_vaults"] = activeVaults
+
+	activeConnections := getActiveConnections()
+	stats["active_connections"] = activeConnections
+
+	activeCells := getActiveCells()
+	stats["active_cells"] = activeCells
+
+	activeRooms := getActiveRooms()
+	stats["active_rooms"] = activeRooms
+
+	biggestParty, err := GetBiggestParty()
+	if err != nil {
+		http.Error(w, "Failed to get biggest party", http.StatusInternalServerError)
+		return
+	}
+	stats["biggest_party"] = biggestParty
+
+	// Add new stats here
+	totalVaults, err := GetTotalVaults()
+	if err != nil {
+		http.Error(w, "Failed to get total vaults", http.StatusInternalServerError)
+		return
+	}
+	stats["total_vaults"] = totalVaults
+
+	totalRooms, err := GetTotalRooms()
+	if err != nil {
+		http.Error(w, "Failed to get total rooms", http.StatusInternalServerError)
+		return
+	}
+	stats["total_rooms"] = totalRooms
+
+	totalRoomsBasic, err := GetTotalRoomsBasic()
+	if err != nil {
+		http.Error(w, "Failed to get total basic rooms", http.StatusInternalServerError)
+		return
+	}
+	stats["total_rooms_basic"] = totalRoomsBasic
+
+	totalRoomsOre, err := GetTotalRoomsOre()
+	if err != nil {
+		http.Error(w, "Failed to get total ore rooms", http.StatusInternalServerError)
+		return
+	}
+	stats["total_rooms_ore"] = totalRoomsOre
+
+	totalRoomsChallenge, err := GetTotalRoomsChallenge()
+	if err != nil {
+		http.Error(w, "Failed to get total challenge rooms", http.StatusInternalServerError)
+		return
+	}
+	stats["total_rooms_challenge"] = totalRoomsChallenge
+
+	totalRoomsOmega, err := GetTotalRoomsOmega()
+	if err != nil {
+		http.Error(w, "Failed to get total omega rooms", http.StatusInternalServerError)
+		return
+	}
+	stats["total_rooms_omega"] = totalRoomsOmega
+
+	largestVaultCount, err := GetLargestVault()
+	if err != nil {
+		http.Error(w, "Failed to get largest vault", http.StatusInternalServerError)
+		return
+	}
+	stats["largest_vault"] = largestVaultCount
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(stats); err != nil {
+		http.Error(w, "Failed to encode stats", http.StatusInternalServerError)
+	}
+}
+
 func Run(ip string, port int) {
 	fmt.Println("HELLO FROM SERVER")
 
 	http.HandleFunc("/", handshakeHandler)
+	http.HandleFunc("/stats", statsHandler)
 	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", ip, port), nil); err != nil {
 		log.Fatal(err)
 	}

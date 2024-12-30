@@ -22,3 +22,14 @@ type VaultCell struct {
 	Inscribed bool
 	Marked    bool
 }
+
+type Player struct {
+	gorm.Model
+	UUID string `gorm:"primaryKey"`
+}
+
+type PlayerVault struct {
+	gorm.Model
+	PlayerUUID string `gorm:"index"`
+	VaultID    string `gorm:"index"`
+}
