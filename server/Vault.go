@@ -95,7 +95,7 @@ func (v *Vault) AddOrReplaceCell(cell *pb.VaultCell) {
 	// Check if the cell already exists in the database
 	var existingCell models.VaultCell
 	result := DB.First(&existingCell, "vault_id = ? AND x = ? AND z = ?", v.UUID, cell.X, cell.Z)
-	log.Println("HELLO")
+	//log.Println("HELLO")
 	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		log.Println("fuck off")
 		log.Println(result.Error)
