@@ -17,6 +17,18 @@ func RenderVault(cells []*proto.VaultCell) (error, []byte) {
 	res := cellSize * cellsPerSide
 	dc := gg.NewContext(res+cellSize, res+cellSize)
 
+	startCell := &proto.VaultCell{
+		X:         0,
+		Z:         0,
+		CellType:  proto.CellType_CELLTYPE_ROOM,
+		RoomType:  proto.RoomType_ROOMTYPE_START,
+		RoomName:  proto.RoomName_ROOMNAME_UNKNOWN,
+		Explored:  true,
+		Inscribed: false,
+		Marked:    false,
+	}
+	drawCell(dc, startCell, res)
+
 	for _, cell := range cells {
 		drawCell(dc, cell, res)
 	}
