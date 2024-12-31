@@ -87,6 +87,8 @@ func (h *Hub) GetVault(vaultID string) *Vault {
 //
 // Only call this if the Vault is empty, otherwise will leave dangling connections and send channels
 func (h *Hub) RemoveVault(vaultID string) {
+
+	// Sending the vault image to discord
 	vault := HUB.GetVault(vaultID)
 	if vault == nil {
 		log.Println("Tried to upload vault that doesn't exist")
@@ -99,7 +101,7 @@ func (h *Hub) RemoveVault(vaultID string) {
 		//log.Println("appended cell")
 		return true
 	})
-	dswh.SendMap(cells, vaultID)
+	go dswh.SendMap(cells, vaultID, DB)
 
 	h.Vaults.Delete(vaultID)
 }
