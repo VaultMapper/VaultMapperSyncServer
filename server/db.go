@@ -5,6 +5,7 @@ import (
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 )
 
@@ -12,7 +13,9 @@ var DB *gorm.DB
 
 func InitDB() {
 	var err error
-	DB, err = gorm.Open(sqlite.Open("file:vaults.db?_journal_mode=WAL"), &gorm.Config{})
+	DB, err = gorm.Open(sqlite.Open("file:vaults.db?_journal_mode=WAL"), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Silent),
+	})
 	if err != nil {
 		log.Fatal("failed to connect database")
 	}
