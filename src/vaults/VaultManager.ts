@@ -5,6 +5,7 @@ import CellPacket from "../packets/CellPacket.ts";
 import JoinPacket from "../packets/JoinPacket.ts";
 import LeavePacket from "../packets/LeavePacket.ts";
 import CellType from "./CellType.ts";
+import RoomName from "./RoomName.ts";
 import RoomType from "./RoomType.ts";
 import Vault from "./Vault.ts";
 import VaultPlayer from "./VaultPlayer.ts";
@@ -16,6 +17,7 @@ export default class VaultManager {
     let vault = this.vaults.get(uuid);
     if (!vault) {
       vault = new Vault(uuid);
+      vault.drawPixelArtMessage("PLEASE\nUPDATE\nVAULTMAPPER", 0, 0, false, CellType.ROOM, RoomType.START, RoomName.UNKNOWN, false);
       this.vaults.set(uuid, vault);
 
       DB.incOrCreateStat("global:vaults_total", 1);
