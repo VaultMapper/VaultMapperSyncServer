@@ -14,6 +14,15 @@ func HandleCommand(command string) {
 		log.Println("Broadcasting toast: " + restOfCommand)
 		HUB.BroadcastToast(restOfCommand)
 	}
+
+	if strings.HasPrefix(command, "toastv ") {
+		restOfCommand := strings.TrimPrefix(command, "toastv ")
+		split := strings.Split(restOfCommand, " ")
+		vaultID := split[0]
+		text := strings.Join(split[1:], " ")
+		log.Println("Broadcasting toast in vault " + vaultID + ": " + text)
+		HUB.BroadcastToastInVault(vaultID, text)
+	}
 }
 
 func StartTerminal() {

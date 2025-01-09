@@ -145,3 +145,21 @@ func (h *Hub) BroadcastToast(text string) {
 		return true
 	})
 }
+
+func (h *Hub) BroadcastToastInVault(vaultID string, text string) {
+	message := pb.Message{Type: pb.MessageType_TOAST, Toast: &pb.Toast{Message: text}}
+	messageBuffer, err := proto.Marshal(&message)
+	if err != nil {
+		return
+	}
+	vault := h.GetVault(vaultID)
+	if vault == nil {
+		log.Println("Tried to broadcast toast in vault that doesn't exist")
+		return
+	}
+	vault.Connections.Range(func(k, v interface{}) bool {
+		conn := v.(*Connection)
+		conn.Send <- messageBuffer
+		return true
+	})
+}
