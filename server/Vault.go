@@ -56,6 +56,8 @@ func (v *Vault) RemoveConnection(playerUUID string) bool {
 	close(c.Send)         // close send channel
 	err := c.conn.Close() // close connection
 	if err != nil {
+		log.Println("Error closing connection: ", err)
+		v.Connections.Delete(playerUUID) // still try to remove the connection even after error
 		return false
 	}
 	v.Connections.Delete(playerUUID) // remove connection

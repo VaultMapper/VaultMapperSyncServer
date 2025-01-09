@@ -8,6 +8,7 @@ import (
 	"golang.org/x/time/rate"
 	"google.golang.org/protobuf/proto"
 	"log"
+	"os"
 	"regexp"
 	"sync"
 	"time"
@@ -51,10 +52,10 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	// conn.ReadMessage() reads the message, works like onMessage
 	// use onClose to do stuff after closing socket
 
+	SendVault(vaultID, conn) // send vault to client
+
 	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
 	_ = AddPlayerToVault(uuid, vaultID) // add player to vault db
-
-	SendVault(vaultID, conn) // send vault to client
 
 	if !ok { // if not ok -> connection exists -> return/close connection
 		_ = conn.WriteMessage(websocket.CloseMessage, nil)
@@ -202,7 +203,7 @@ func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 func SendVault(vaultID string, conn *websocket.Conn) {
 	vault := HUB.GetVault(vaultID)
 	if vault == nil {
-		log.Println("Tried to send vault that doesn't exist")
+		log.Println("Tried to send vault that doesn't exist, it will be created now")
 		return // if vault doesn't exist, do nothing - this can happen when this is the first player joining a fresh vault
 	}
 	log.Println("Sending vault to client")
@@ -300,11 +301,20 @@ func updateStatsCache() {
 		stats["largest_vault"] = largestVaultCount
 	}
 
+	stats["activity"] = GetActivity()
+
 	statsCache = stats
 	cacheExpiration = time.Now().Add(cacheDuration)
 }
 
 func statsHandler(w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+
+	if token != os.Getenv("TOKEN") || token == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	cacheMutex.Lock()
 	if time.Now().After(cacheExpiration) {
 		cacheMutex.Unlock()

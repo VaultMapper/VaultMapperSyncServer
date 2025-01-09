@@ -81,16 +81,50 @@ func GetTotalRooms() (int64, error) {
 }
 
 // GetLargestVault returns the vault with the most cells in it
-func GetLargestVault() (int64, error) {
+/*func GetLargestVault() (int64, error) {
 	var count int64
 	err := DB.Model(&models.VaultCell{}).Select("vault_id").Group("vault_id").Count(&count).Error
 	return count, err
+}*/
+
+func GetLargestVault() (int64, error) {
+	var result struct {
+		VaultID string
+		Count   int64
+	}
+	err := DB.Model(&models.VaultCell{}).
+		Select("vault_id, COUNT(*) as count").
+		Group("vault_id").
+		Order("count DESC").
+		Limit(1).
+		Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+	return result.Count, nil
 }
 
-func GetBiggestParty() (int64, error) {
+/*func GetBiggestParty() (int64, error) {
 	var count int64
 	err := DB.Model(&models.PlayerVault{}).Select("player_uuid").Group("vault_id").Count(&count).Error
 	return count, err
+}*/
+
+func GetBiggestParty() (int64, error) {
+	var result struct {
+		VaultID string
+		Count   int64
+	}
+	err := DB.Model(&models.PlayerVault{}).
+		Select("vault_id, COUNT(player_uuid) as count").
+		Group("vault_id").
+		Order("count DESC").
+		Limit(1).
+		Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+	return result.Count, nil
 }
 
 // GetTotalRoomsBasic returns the total number of basic rooms in db
@@ -116,4 +150,22 @@ func GetTotalRoomsOmega() (int64, error) {
 	var count int64
 	err := DB.Model(&models.VaultCell{}).Where("room_type = ?", pb.RoomType_ROOMTYPE_OMEGA).Count(&count).Error
 	return count, err
+}
+
+// GetActivity returns a list of vaults with the players inside them
+func GetActivity() map[string][]string {
+	vaults := make(map[string][]string)
+	HUB.Vaults.Range(func(k, v interface{}) bool {
+		vaultID := k.(string)
+		vault := v.(*Vault)
+		var players []string
+		vault.Connections.Range(func(k, v interface{}) bool {
+			players = append(players, k.(string))
+			return true
+		})
+		vaults[vaultID] = players
+		return true
+	})
+
+	return vaults
 }

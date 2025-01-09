@@ -5,6 +5,8 @@ import (
 	"fmt"
 	VMServer "github.com/NodiumHosting/VaultMapperSyncServer/server"
 	"github.com/joho/godotenv"
+	"io"
+	"log"
 	"os"
 	"strconv"
 )
@@ -15,8 +17,18 @@ var (
 )
 
 func main() {
+	logFile, err := os.OpenFile("app.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	defer logFile.Close()
+
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+
+	log.SetOutput(multiWriter)
+
 	parseEnv()
-	fmt.Println(ipAddress, port)
+	log.Println(ipAddress, port)
 
 	VMServer.InitDB()
 
