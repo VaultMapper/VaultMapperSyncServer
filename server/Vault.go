@@ -19,6 +19,7 @@ type Vault struct {
 	UUID        string
 	Connections sync.Map // stores a map of current connections inside the vault, key is uuid, value is Connection
 	Viewers     sync.Map // stores a map of viewers, same as Connections but separated
+	ViewerCode  string   // code used to identify Vault for viewing purposes
 	Cells       sync.Map // stores a map of cells inside the vault, key is x,z, value is pb.VaultCell
 }
 
@@ -47,8 +48,8 @@ func (v *Vault) AddViewer(UUID string, conn *websocket.Conn) bool {
 // return true if the Vault is empty after connection removal, false otherwise
 //
 // Send channel needs to be closed for WritePump to exit properly!
-func (v *Vault) RemoveViewer(playerUUID string) bool {
-	value, ok := v.Viewers.Load(playerUUID)
+func (v *Vault) RemoveViewer(viewerUUID string) bool {
+	value, ok := v.Viewers.Load(viewerUUID)
 	if !ok {
 		return false
 	}
@@ -58,10 +59,10 @@ func (v *Vault) RemoveViewer(playerUUID string) bool {
 	err := c.conn.Close() // close connection
 	if err != nil {
 		log.Println("Error closing connection: ", err)
-		v.Viewers.Delete(playerUUID) // still try to remove the connection even after error
+		v.Viewers.Delete(viewerUUID) // still try to remove the connection even after error
 		return false
 	}
-	v.Viewers.Delete(playerUUID) // remove connection
+	v.Viewers.Delete(viewerUUID) // remove connection
 
 	// check if the vault is empty now
 	isEmpty := true
@@ -74,6 +75,15 @@ func (v *Vault) RemoveViewer(playerUUID string) bool {
 	}
 
 	return false
+}
+
+func (v *Vault) ViewerCount() int {
+	cnt := 0
+	v.Viewers.Range(func(k, v interface{}) bool {
+		cnt += 1
+		return true
+	})
+	return cnt
 }
 
 // AddConnection adds the connection to Vault structure and starts up the WritePump

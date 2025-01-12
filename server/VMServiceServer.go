@@ -14,7 +14,7 @@ var HUB = Hub{}
 var (
 	statsLimiter  = rate.NewLimiter(5, 10) // 1 request per second with a burst of 5
 	statsMu       sync.Mutex
-	viewerLimiter = rate.NewLimiter(5, 10) // 1 request per second with a burst of 5
+	viewerLimiter = rate.NewLimiter(1, 1) // 1 request per second with a burst of 5
 	viewerMu      sync.Mutex
 )
 

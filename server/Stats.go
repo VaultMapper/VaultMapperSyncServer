@@ -4,7 +4,6 @@ import (
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/disgoorg/json"
-	"golang.org/x/time/rate"
 	"net/http"
 	"os"
 	"sync"
@@ -169,7 +168,7 @@ func GetActivity() map[string][]string {
 			players = append(players, k.(string))
 			return true
 		})
-		vaults[vaultID] = players
+		vaults[vaultID+" : "+vault.ViewerCode] = players
 		return true
 	})
 

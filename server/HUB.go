@@ -6,6 +6,7 @@ import (
 	"github.com/NodiumHosting/VaultMapperSyncServer/dswh"
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
+	"github.com/NodiumHosting/VaultMapperSyncServer/util"
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 	"gorm.io/gorm"
@@ -42,6 +43,8 @@ func (h *Hub) GetOrCreateVault(vaultID string) *Vault {
 					log.Println("Error creating new vault in DB: ", err)
 					return v
 				}
+				v.ViewerCode = util.RandSeq(6)
+				log.Println("New vault with viewer code: ", v.ViewerCode)
 				return v
 			}
 			log.Println("Error querying DB: ", result.Error)
@@ -66,8 +69,24 @@ func (h *Hub) GetOrCreateVault(vaultID string) *Vault {
 			//log.Printf("Loaded cell from DB: %s\n", key)
 		}
 		log.Printf("Loaded vault from DB: %s\n", vaultID)
+		v.ViewerCode = util.RandSeq(6)
+		log.Println("New vault with viewer code: ", v.ViewerCode)
 	}
 	return v
+}
+
+func (h *Hub) GetVaultByCode(viewerCode string) *Vault {
+	var vlt *Vault = nil
+	h.Vaults.Range(func(key, v interface{}) bool {
+		vault := v.(*Vault)
+		if vault.ViewerCode == viewerCode {
+			vlt = vault
+			return false
+		}
+
+		return true
+	})
+	return vlt
 }
 
 // GetVault is used to get Vault by UUID, returns nil if not found

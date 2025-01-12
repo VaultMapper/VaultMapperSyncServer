@@ -173,13 +173,18 @@ func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 	if err != nil {
 		return
 	}
-	//log.Println("Buffer ready, broadcasting")
+
 	vault.Connections.Range(func(key, val interface{}) bool { // go through connections and add to their Send channels
 		if key != excludeUUID {
 			conn := val.(*Connection)
 			conn.Send <- messageBuffer
-			//log.Println("sent to buffer")
 		}
+		return true
+	})
+	vault.Viewers.Range(func(key, val interface{}) bool { // go through viewers and add to their Send channels
+		conn := val.(*Connection)
+		conn.Send <- messageBuffer
+
 		return true
 	})
 }
