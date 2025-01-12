@@ -275,22 +275,3 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to encode stats", http.StatusInternalServerError)
 	}
 }
-
-var (
-	limiter = rate.NewLimiter(5, 10) // 1 request per second with a burst of 5
-	mu      sync.Mutex
-)
-
-func rateLimit(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		mu.Lock()
-		defer mu.Unlock()
-
-		if !limiter.Allow() {
-			http.Error(w, "Too many requests", http.StatusTooManyRequests)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	})
-}
