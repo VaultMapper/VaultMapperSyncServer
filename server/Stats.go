@@ -179,6 +179,7 @@ var (
 	statsCache      map[string]interface{}
 	cacheExpiration time.Time
 	cacheMutex      sync.Mutex
+	mainUpdateIndex int                // some stats are quite heavy to update so they'll be updated slower
 	cacheDuration   = 10 * time.Second // Cache duration
 )
 
@@ -206,45 +207,58 @@ func updateStatsCache() {
 	activeRooms := getActiveRooms()
 	stats["active_rooms"] = activeRooms
 
-	biggestParty, err := GetBiggestParty()
-	if err == nil {
-		stats["biggest_party"] = biggestParty
-	}
+	// heavy updates from here
+	switch mainUpdateIndex {
+	case 0:
+		biggestParty, err := GetBiggestParty()
+		if err == nil {
+			stats["biggest_party"] = biggestParty
+		}
 
-	totalVaults, err := GetTotalVaults()
-	if err == nil {
-		stats["total_vaults"] = totalVaults
-	}
+	case 1:
+		totalVaults, err := GetTotalVaults()
+		if err == nil {
+			stats["total_vaults"] = totalVaults
+		}
 
-	totalRooms, err := GetTotalRooms()
-	if err == nil {
-		stats["total_rooms"] = totalRooms
-	}
+	case 2:
+		totalRooms, err := GetTotalRooms()
+		if err == nil {
+			stats["total_rooms"] = totalRooms
+		}
 
-	totalRoomsBasic, err := GetTotalRoomsBasic()
-	if err == nil {
-		stats["total_rooms_basic"] = totalRoomsBasic
-	}
+	case 3:
+		totalRoomsBasic, err := GetTotalRoomsBasic()
+		if err == nil {
+			stats["total_rooms_basic"] = totalRoomsBasic
+		}
 
-	totalRoomsOre, err := GetTotalRoomsOre()
-	if err == nil {
-		stats["total_rooms_ore"] = totalRoomsOre
-	}
+	case 4:
+		totalRoomsOre, err := GetTotalRoomsOre()
+		if err == nil {
+			stats["total_rooms_ore"] = totalRoomsOre
+		}
 
-	totalRoomsChallenge, err := GetTotalRoomsChallenge()
-	if err == nil {
-		stats["total_rooms_challenge"] = totalRoomsChallenge
-	}
+	case 5:
+		totalRoomsChallenge, err := GetTotalRoomsChallenge()
+		if err == nil {
+			stats["total_rooms_challenge"] = totalRoomsChallenge
+		}
 
-	totalRoomsOmega, err := GetTotalRoomsOmega()
-	if err == nil {
-		stats["total_rooms_omega"] = totalRoomsOmega
-	}
+	case 6:
+		totalRoomsOmega, err := GetTotalRoomsOmega()
+		if err == nil {
+			stats["total_rooms_omega"] = totalRoomsOmega
+		}
 
-	largestVaultCount, err := GetLargestVault()
-	if err == nil {
-		stats["largest_vault"] = largestVaultCount
+	case 7:
+		largestVaultCount, err := GetLargestVault()
+		if err == nil {
+			stats["largest_vault"] = largestVaultCount
+		}
 	}
+	mainUpdateIndex++
+	mainUpdateIndex = mainUpdateIndex % 8
 
 	stats["activity"] = GetActivity()
 
