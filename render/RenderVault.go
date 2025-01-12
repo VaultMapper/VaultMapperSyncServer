@@ -58,6 +58,9 @@ func getCellColor(cell *proto.VaultCell) f64.Vec3 {
 	if cell.RoomType == proto.RoomType_ROOMTYPE_CHALLENGE {
 		return f64.Vec3{0.9411764705882353, 0.6196078431372549, 0}
 	}
+	if cell.RoomType == proto.RoomType_ROOMTYPE_ORE {
+		return f64.Vec3{0, 1, 1}
+	}
 	return f64.Vec3{0, 0, 1}
 }
 
