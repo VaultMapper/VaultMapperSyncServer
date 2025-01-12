@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
+	"github.com/NodiumHosting/VaultMapperSyncServer/util"
 	"github.com/gorilla/websocket"
 	"google.golang.org/protobuf/proto"
 	"log"
@@ -137,13 +138,6 @@ func HandlePlayerMovement(vaultID string, uuid string, msg *pb.Message) {
 	BroadcastMessage(vaultID, uuid, msg)
 }
 
-func Abs(x int32) int32 {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
 // HandleVaultCell handles incoming VaultCell packets from clients, broadcasts them to the other players and adds them to internal structures
 func HandleVaultCell(vaultID string, uuid string, msg *pb.Message) {
 	log.Println("Handling VaultCell")
@@ -154,12 +148,12 @@ func HandleVaultCell(vaultID string, uuid string, msg *pb.Message) {
 			return
 		}
 	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_X {
-		if Abs(cell.GetX())%2 != 1 || cell.GetZ()%2 != 0 {
+		if util.Abs(cell.GetX())%2 != 1 || cell.GetZ()%2 != 0 {
 			log.Println("Sent invalid tunnel cellz", uuid)
 			return
 		}
 	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_Z {
-		if cell.GetX()%2 != 0 || Abs(cell.GetZ())%2 != 1 {
+		if cell.GetX()%2 != 0 || util.Abs(cell.GetZ())%2 != 1 {
 			log.Println("Sent invalid tunnel cellx", uuid)
 			return
 		}
