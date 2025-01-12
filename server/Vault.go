@@ -18,7 +18,62 @@ import (
 type Vault struct {
 	UUID        string
 	Connections sync.Map // stores a map of current connections inside the vault, key is uuid, value is Connection
+	Viewers     sync.Map // stores a map of viewers, same as Connections but separated
 	Cells       sync.Map // stores a map of cells inside the vault, key is x,z, value is pb.VaultCell
+}
+
+// AddViewer adds the connection to Vault structure and starts up the WritePump
+//
+// ok is false if the connection already exists, else false
+func (v *Vault) AddViewer(UUID string, conn *websocket.Conn) bool {
+	_, ok := v.Viewers.Load(UUID)
+	if ok {
+		log.Println("Tried to add connection but it already exists")
+		return false // connection already exists
+	}
+	c := &Connection{ // create connection
+		uuid: UUID,
+		conn: conn,
+		Send: make(chan []byte, 256), // buffered channel of 256 bytes
+	}
+
+	v.Viewers.Store(UUID, c) // store the connection inside vault
+	go c.WritePump()         // Start the write pump
+	return true
+}
+
+// RemoveViewer removes the connection from Vault structure and closes the Send channel
+//
+// return true if the Vault is empty after connection removal, false otherwise
+//
+// Send channel needs to be closed for WritePump to exit properly!
+func (v *Vault) RemoveViewer(playerUUID string) bool {
+	value, ok := v.Viewers.Load(playerUUID)
+	if !ok {
+		return false
+	}
+
+	c := value.(*Connection)
+	close(c.Send)         // close send channel
+	err := c.conn.Close() // close connection
+	if err != nil {
+		log.Println("Error closing connection: ", err)
+		v.Viewers.Delete(playerUUID) // still try to remove the connection even after error
+		return false
+	}
+	v.Viewers.Delete(playerUUID) // remove connection
+
+	// check if the vault is empty now
+	isEmpty := true
+	v.Viewers.Range(func(k, v interface{}) bool {
+		isEmpty = false
+		return false
+	})
+	if isEmpty {
+		return true
+	}
+
+	return false
 }
 
 // AddConnection adds the connection to Vault structure and starts up the WritePump
