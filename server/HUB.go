@@ -122,6 +122,9 @@ func (h *Hub) RemoveVault(vaultID string) {
 	})
 	go dswh.SendMap(cells, vaultID, DB)
 
+	// make sure to clear and close all viewers
+	vault.ClearViewers()
+
 	h.Vaults.Delete(vaultID)
 }
 

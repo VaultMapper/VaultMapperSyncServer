@@ -55,6 +55,7 @@ func (v *Vault) RemoveViewer(viewerUUID string) bool {
 	}
 
 	c := value.(*Connection)
+
 	close(c.Send)         // close send channel
 	err := c.conn.Close() // close connection
 	if err != nil {
@@ -77,6 +78,7 @@ func (v *Vault) RemoveViewer(viewerUUID string) bool {
 	return false
 }
 
+// ViewerCount allows easy access to the number of viewers in a vault
 func (v *Vault) ViewerCount() int {
 	cnt := 0
 	v.Viewers.Range(func(k, v interface{}) bool {
@@ -84,6 +86,17 @@ func (v *Vault) ViewerCount() int {
 		return true
 	})
 	return cnt
+}
+
+// ClearViewers safely clears all viewers including closing write pumps
+func (v *Vault) ClearViewers() {
+	log.Println("clearing viewers")
+	v.Viewers.Range(func(k, val interface{}) bool {
+		c := val.(*Connection)
+		v.RemoveViewer(c.uuid)
+		return true
+	})
+	log.Println("DONE")
 }
 
 // AddConnection adds the connection to Vault structure and starts up the WritePump

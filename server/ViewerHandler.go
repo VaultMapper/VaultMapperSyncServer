@@ -72,6 +72,7 @@ func viewerHandshakeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		_, data, err := conn.ReadMessage()
+
 		if err != nil {
 			log.Println("Failed to read: " + err.Error())
 			return
