@@ -1,7 +1,6 @@
 package server
 
 import (
-	"log"
 	"sync/atomic"
 	"time"
 )
@@ -39,7 +38,6 @@ func calculatePPS() {
 			atomic.SwapUint64(&maxPPS, currentCount)
 		}
 		atomic.StoreUint64(&pps, currentCount)
-		log.Println(pps)
 	}
 }
 
