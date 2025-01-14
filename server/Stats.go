@@ -176,7 +176,7 @@ func GetActivity() map[string][]string {
 }
 
 var (
-	statsCache      map[string]interface{}
+	stats           = make(map[string]interface{})
 	cacheExpiration time.Time
 	cacheMutex      sync.Mutex
 	mainUpdateIndex int                // some stats are quite heavy to update so they'll be updated slower
@@ -188,7 +188,7 @@ func updateStatsCache() {
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
 
-	stats := make(map[string]interface{})
+	//stats := make(map[string]interface{})
 
 	uniquePlayerCount, err := GetTotalPlayerCount()
 	if err == nil {
@@ -262,7 +262,7 @@ func updateStatsCache() {
 
 	stats["activity"] = GetActivity()
 
-	statsCache = stats
+	//statsCache = stats
 	cacheExpiration = time.Now().Add(cacheDuration)
 }
 
@@ -280,11 +280,11 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 		updateStatsCache()
 		cacheMutex.Lock()
 	}
-	stats := statsCache
+	st := stats
 	cacheMutex.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(stats); err != nil {
+	if err := json.NewEncoder(w).Encode(st); err != nil {
 		http.Error(w, "Failed to encode stats", http.StatusInternalServerError)
 	}
 }
