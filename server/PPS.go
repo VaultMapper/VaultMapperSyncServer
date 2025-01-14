@@ -8,22 +8,35 @@ import (
 // this file implements a service that keeps track of packet per second statistic metric
 
 var (
-	packetCount       uint64
-	packetCounterChan = make(chan bool, 500) // buffered channel for packet counting, used to hopefully bypass slowdowns with overusing mutexes
-	pps               uint64                 // stores the actual packet per second metric
-	maxPPS            uint64                 // runtime max of pps
+	inPacketCount        uint64
+	inPacketCounterChan  = make(chan bool, 500) // buffered channel for packet counting, used to hopefully bypass slowdowns with overusing mutexes
+	inPPS                uint64                 // stores the actual packet per second metric
+	inMaxPPS             uint64                 // runtime max of pps
+	outPacketCount       uint64
+	outPacketCounterChan = make(chan bool, 500)
+	outPPS               uint64
+	outMaxPPS            uint64
 )
 
 func PPSInit() {
-	go processPacketCounter()
+	go processInPacketCounter()
+	go processOutPacketCounter()
 	go calculatePPS()
 }
 
-// processPacketCounter runs as a goroutine and continuously processes packet counter buffer
-func processPacketCounter() {
-	for inc := range packetCounterChan {
+// processInPacketCounter runs as a goroutine and continuously processes packet counter buffer
+func processInPacketCounter() {
+	for inc := range inPacketCounterChan {
 		if inc {
-			atomic.AddUint64(&packetCount, 1)
+			atomic.AddUint64(&inPacketCount, 1)
+		}
+	}
+}
+
+func processOutPacketCounter() {
+	for inc := range inPacketCounterChan {
+		if inc {
+			atomic.AddUint64(&outPacketCount, 1)
 		}
 	}
 }
@@ -33,18 +46,32 @@ func calculatePPS() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		currentCount := atomic.SwapUint64(&packetCount, 0)
-		if pps < currentCount {
-			atomic.SwapUint64(&maxPPS, currentCount)
+		currentInCount := atomic.SwapUint64(&inPacketCount, 0)
+		if inMaxPPS < currentInCount {
+			atomic.SwapUint64(&inMaxPPS, currentInCount)
 		}
-		atomic.StoreUint64(&pps, currentCount)
+		atomic.StoreUint64(&inPPS, currentInCount)
+
+		currentOutCount := atomic.SwapUint64(&outPacketCount, 0)
+		if outMaxPPS < currentOutCount {
+			atomic.SwapUint64(&outMaxPPS, currentOutCount)
+		}
+		atomic.StoreUint64(&outPPS, currentOutCount)
 	}
 }
 
-func GetPPS() uint64 {
-	return pps
+func GetInPPS() uint64 {
+	return inPPS
 }
 
-func GetMaxPPS() uint64 {
-	return maxPPS
+func GetInMaxPPS() uint64 {
+	return inMaxPPS
+}
+
+func GetOutPPS() uint64 {
+	return outPPS
+}
+
+func GetOutMaxPPS() uint64 {
+	return outMaxPPS
 }
