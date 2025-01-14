@@ -88,6 +88,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Marshal problem")
 			return
 		}
+		packetCounterChan <- true
 		onMessage(vaultID, uuid, &msg)
 	}
 }

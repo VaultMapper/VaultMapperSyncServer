@@ -207,6 +207,12 @@ func updateStatsCache() {
 	activeRooms := getActiveRooms()
 	stats["active_rooms"] = activeRooms
 
+	packetStat := GetPPS()
+	stats["pps"] = packetStat
+
+	maxPacketStat := GetMaxPPS()
+	stats["max_pps"] = maxPacketStat
+
 	// heavy updates from here
 	switch mainUpdateIndex {
 	case 0:

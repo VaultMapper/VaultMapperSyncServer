@@ -49,6 +49,9 @@ func viewerRateLimit(next http.Handler) http.Handler {
 func Run(ip string, port int) {
 	fmt.Println("HELLO FROM SERVER")
 
+	// start up pps service
+	PPSInit()
+
 	http.HandleFunc("/", handshakeHandler)
 	http.Handle("/stats", statsRateLimit(http.HandlerFunc(statsHandler)))
 	http.Handle("/view", viewerRateLimit(http.HandlerFunc(viewerHandshakeHandler)))
