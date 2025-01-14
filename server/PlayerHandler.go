@@ -26,7 +26,8 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uuid := r.URL.Query().Get("uuid")
-	vaultID := r.URL.Query().Get("vaultID") // if checks pass, upgrade
+	vaultID := r.URL.Query().Get("vaultID")      // if checks pass, upgrade
+	sendViewIDToast := r.URL.Query().Get("view") // if any value present(key is found), sends a toast to the player when joining vault
 	log.Printf(vaultID + ": " + uuid)
 
 	if !uuidRegex.MatchString(uuid) || !vaultIDRegex.MatchString(vaultID) {
@@ -46,16 +47,20 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 	SendVault(vaultID, conn) // send vault to client
 
-	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
+	c, vault := HUB.AddConnectionToVault(vaultID, uuid, conn)
 	_ = AddPlayerToVault(uuid, vaultID) // add player to vault db
 
-	if !ok { // if not ok -> connection exists -> return/close connection
+	if c == nil { // close connection/return if
 		_ = conn.WriteMessage(websocket.CloseMessage, nil)
 		err := conn.Close()
 		if err != nil {
 			return
 		}
 		return
+	}
+
+	if sendViewIDToast == "" { // send Toast with ViewerID if found
+		c.SendToast("Viewer Code: " + vault.ViewerCode)
 	}
 
 	defer onClose(uuid, vaultID)

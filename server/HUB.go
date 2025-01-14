@@ -129,13 +129,13 @@ func (h *Hub) RemoveVault(vaultID string) {
 }
 
 // AddConnectionToVault is a helper method that adds vault connection including vault creation if needed
-func (h *Hub) AddConnectionToVault(vaultID string, playerUUID string, conn *websocket.Conn) bool {
+//
+// Returns *Connection or null if operation wasn't successful as first, *Vault that was accessed as second
+func (h *Hub) AddConnectionToVault(vaultID string, playerUUID string, conn *websocket.Conn) (*Connection, *Vault) {
 	vault := h.GetOrCreateVault(vaultID)
-	ok := vault.AddConnection(playerUUID, conn)
-	if !ok {
-		return false
-	}
-	return true
+	c := vault.AddConnection(playerUUID, conn)
+
+	return c, vault
 }
 
 // RemoveConnectionFromVault is a helper method that removes connection from vault including checks for empty vault
