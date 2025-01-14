@@ -59,7 +59,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sendViewIDToast == "" { // send Toast with ViewerID if found
+	if sendViewIDToast != "" { // send Toast with ViewerID if found
 		c.SendToast("Viewer Code: " + vault.ViewerCode)
 	}
 
