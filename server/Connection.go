@@ -1,7 +1,9 @@
 package server
 
 import (
+	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/gorilla/websocket"
+	"google.golang.org/protobuf/proto"
 	"log"
 )
 
@@ -36,4 +38,15 @@ func (c *Connection) WritePump() {
 		}
 
 	}
+}
+
+// SendToast is a function to send toast message to connection
+func (c *Connection) SendToast(text string) {
+	message := pb.Message{Type: pb.MessageType_TOAST, Toast: &pb.Toast{Message: text}}
+	messageBuffer, err := proto.Marshal(&message)
+	if err != nil {
+		return
+	}
+
+	c.Send <- messageBuffer
 }
