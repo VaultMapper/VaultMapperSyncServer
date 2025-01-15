@@ -23,6 +23,7 @@ func (c *Connection) WritePump() {
 	log.Println("starting write pump on " + c.uuid)
 	for {
 		msgBytes, ok := <-c.Send
+
 		// ok will be false in case the Send channel is closed
 		if !ok {
 			// channel is closed, send close message and return
@@ -36,7 +37,9 @@ func (c *Connection) WritePump() {
 			log.Println("error, closing pump")
 			return
 		}
-
+		//log.Println("adding outpacket")
+		//outPacketCounterChan <- 1 // add outpacket to counter
+		//log.Println("added outpacket")
 	}
 }
 

@@ -9,11 +9,11 @@ import (
 
 var (
 	inPacketCount        uint64
-	inPacketCounterChan  = make(chan bool, 500) // buffered channel for packet counting, used to hopefully bypass slowdowns with overusing mutexes
-	inPPS                uint64                 // stores the actual packet per second metric
-	inMaxPPS             uint64                 // runtime max of pps
+	inPacketCounterChan  = make(chan int, 500) // buffered channel for packet counting, used to hopefully bypass slowdowns with overusing mutexes
+	inPPS                uint64                // stores the actual packet per second metric
+	inMaxPPS             uint64                // runtime max of pps
 	outPacketCount       uint64
-	outPacketCounterChan = make(chan bool, 500)
+	outPacketCounterChan = make(chan int, 500)
 	outPPS               uint64
 	outMaxPPS            uint64
 )
@@ -27,7 +27,7 @@ func PPSInit() {
 // processInPacketCounter runs as a goroutine and continuously processes packet counter buffer
 func processInPacketCounter() {
 	for inc := range inPacketCounterChan {
-		if inc {
+		if inc == 1 {
 			atomic.AddUint64(&inPacketCount, 1)
 		}
 	}
@@ -35,7 +35,7 @@ func processInPacketCounter() {
 
 func processOutPacketCounter() {
 	for inc := range inPacketCounterChan {
-		if inc {
+		if inc == 1 {
 			atomic.AddUint64(&outPacketCount, 1)
 		}
 	}

@@ -65,6 +65,8 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer onClose(uuid, vaultID)
 
+	isDead := 0
+
 	// this should basically be the onMessage thingy
 	for {
 		err := conn.SetReadDeadline(time.Now().Add(15 * time.Second))
@@ -79,8 +81,16 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 		if string(data) == "keep_me_alive" {
 			//log.Println("Keep alive received")
+			isDead++
+
+			if isDead > 30 { // if connection keeps sending keepalives, but no other data arives, the player is afk or the client bugged out - disconnect them
+				log.Println("CONNECTION IS DEAD: " + uuid)
+				conn.WriteMessage(websocket.CloseMessage, nil)
+				return
+			}
 			continue
 		}
+		isDead = 0
 
 		var msg pb.Message
 		err2 := proto.Unmarshal(data, &msg)
@@ -88,8 +98,12 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Marshal problem")
 			return
 		}
-		packetCounterChan <- true
+
 		onMessage(vaultID, uuid, &msg)
+		//log.Println("onmessage adding in")
+		//inPacketCounterChan <- 1
+		//log.Println("onmessage adding in done")
+
 	}
 }
 
@@ -190,6 +204,7 @@ func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 	vault.Viewers.Range(func(key, val interface{}) bool { // go through viewers and add to their Send channels
 		conn := val.(*Connection)
 		conn.Send <- messageBuffer
+		//log.Println("sending to viewer")
 
 		return true
 	})
