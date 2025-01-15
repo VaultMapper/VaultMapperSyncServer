@@ -19,7 +19,7 @@ type Vault struct {
 	UUID        string
 	Connections sync.Map // stores a map of current connections inside the vault, key is uuid, value is Connection
 	Viewers     sync.Map // stores a map of viewers, same as Connections but separated
-	ViewerCode  string   // code used to identify Vault for viewing purposes
+	ViewerCode  string   // code used to identify Vault for viewing purposes. Mutex shouldn't be needed for ViewerCode as the value is only read after it's creation which cannot result in race conditions
 	Cells       sync.Map // stores a map of cells inside the vault, key is x,z, value is pb.VaultCell
 }
 
@@ -101,12 +101,12 @@ func (v *Vault) ClearViewers() {
 
 // AddConnection adds the connection to Vault structure and starts up the WritePump
 //
-// ok is false if the connection already exists, else false
-func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) bool {
+// Returns *Connection if operation was successful, else nil
+func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) *Connection {
 	_, ok := v.Connections.Load(playerUUID)
 	if ok {
 		log.Println("Tried to add connection but it already exists")
-		return false // connection already exists
+		return nil // connection already exists
 	}
 	c := &Connection{ // create connection
 		uuid: playerUUID,
@@ -116,7 +116,7 @@ func (v *Vault) AddConnection(playerUUID string, conn *websocket.Conn) bool {
 
 	v.Connections.Store(playerUUID, c) // store the connection inside vault
 	go c.WritePump()                   // Start the write pump
-	return true
+	return c
 }
 
 // RemoveConnection removes the connection from Vault structure and closes the Send channel
@@ -135,8 +135,6 @@ func (v *Vault) RemoveConnection(playerUUID string) bool {
 	err := c.conn.Close() // close connection
 	if err != nil {
 		log.Println("Error closing connection: ", err)
-		v.Connections.Delete(playerUUID) // still try to remove the connection even after error
-		return false
 	}
 	v.Connections.Delete(playerUUID) // remove connection
 

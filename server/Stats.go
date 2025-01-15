@@ -176,9 +176,10 @@ func GetActivity() map[string][]string {
 }
 
 var (
-	statsCache      map[string]interface{}
+	stats           = make(map[string]interface{})
 	cacheExpiration time.Time
 	cacheMutex      sync.Mutex
+	mainUpdateIndex int                // some stats are quite heavy to update so they'll be updated slower
 	cacheDuration   = 10 * time.Second // Cache duration
 )
 
@@ -187,7 +188,7 @@ func updateStatsCache() {
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
 
-	stats := make(map[string]interface{})
+	//stats := make(map[string]interface{})
 
 	uniquePlayerCount, err := GetTotalPlayerCount()
 	if err == nil {
@@ -206,49 +207,74 @@ func updateStatsCache() {
 	activeRooms := getActiveRooms()
 	stats["active_rooms"] = activeRooms
 
-	biggestParty, err := GetBiggestParty()
-	if err == nil {
-		stats["biggest_party"] = biggestParty
-	}
+	packetStat := GetInPPS()
+	stats["in_pps"] = packetStat
 
-	totalVaults, err := GetTotalVaults()
-	if err == nil {
-		stats["total_vaults"] = totalVaults
-	}
+	maxPacketStat := GetInMaxPPS()
+	stats["in_max_pps"] = maxPacketStat
 
-	totalRooms, err := GetTotalRooms()
-	if err == nil {
-		stats["total_rooms"] = totalRooms
-	}
+	outPacketStat := GetOutPPS()
+	stats["out_pps"] = outPacketStat
 
-	totalRoomsBasic, err := GetTotalRoomsBasic()
-	if err == nil {
-		stats["total_rooms_basic"] = totalRoomsBasic
-	}
+	outMaxPacketStat := GetOutMaxPPS()
+	stats["out_max_pps"] = outMaxPacketStat
 
-	totalRoomsOre, err := GetTotalRoomsOre()
-	if err == nil {
-		stats["total_rooms_ore"] = totalRoomsOre
-	}
+	// heavy updates from here
+	switch mainUpdateIndex {
+	case 0:
+		biggestParty, err := GetBiggestParty()
+		if err == nil {
+			stats["biggest_party"] = biggestParty
+		}
 
-	totalRoomsChallenge, err := GetTotalRoomsChallenge()
-	if err == nil {
-		stats["total_rooms_challenge"] = totalRoomsChallenge
-	}
+	case 1:
+		totalVaults, err := GetTotalVaults()
+		if err == nil {
+			stats["total_vaults"] = totalVaults
+		}
 
-	totalRoomsOmega, err := GetTotalRoomsOmega()
-	if err == nil {
-		stats["total_rooms_omega"] = totalRoomsOmega
-	}
+	case 2:
+		totalRooms, err := GetTotalRooms()
+		if err == nil {
+			stats["total_rooms"] = totalRooms
+		}
 
-	largestVaultCount, err := GetLargestVault()
-	if err == nil {
-		stats["largest_vault"] = largestVaultCount
+	case 3:
+		totalRoomsBasic, err := GetTotalRoomsBasic()
+		if err == nil {
+			stats["total_rooms_basic"] = totalRoomsBasic
+		}
+
+	case 4:
+		totalRoomsOre, err := GetTotalRoomsOre()
+		if err == nil {
+			stats["total_rooms_ore"] = totalRoomsOre
+		}
+
+	case 5:
+		totalRoomsChallenge, err := GetTotalRoomsChallenge()
+		if err == nil {
+			stats["total_rooms_challenge"] = totalRoomsChallenge
+		}
+
+	case 6:
+		totalRoomsOmega, err := GetTotalRoomsOmega()
+		if err == nil {
+			stats["total_rooms_omega"] = totalRoomsOmega
+		}
+
+	case 7:
+		largestVaultCount, err := GetLargestVault()
+		if err == nil {
+			stats["largest_vault"] = largestVaultCount
+		}
 	}
+	mainUpdateIndex++
+	mainUpdateIndex = mainUpdateIndex % 8
 
 	stats["activity"] = GetActivity()
 
-	statsCache = stats
+	//statsCache = stats
 	cacheExpiration = time.Now().Add(cacheDuration)
 }
 
@@ -266,11 +292,11 @@ func statsHandler(w http.ResponseWriter, r *http.Request) {
 		updateStatsCache()
 		cacheMutex.Lock()
 	}
-	stats := statsCache
+	st := stats
 	cacheMutex.Unlock()
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(stats); err != nil {
+	if err := json.NewEncoder(w).Encode(st); err != nil {
 		http.Error(w, "Failed to encode stats", http.StatusInternalServerError)
 	}
 }

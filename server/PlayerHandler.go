@@ -26,7 +26,8 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uuid := r.URL.Query().Get("uuid")
-	vaultID := r.URL.Query().Get("vaultID") // if checks pass, upgrade
+	vaultID := r.URL.Query().Get("vaultID")      // if checks pass, upgrade
+	sendViewIDToast := r.URL.Query().Get("view") // if any value present(key is found), sends a toast to the player when joining vault
 	log.Printf(vaultID + ": " + uuid)
 
 	if !uuidRegex.MatchString(uuid) || !vaultIDRegex.MatchString(vaultID) {
@@ -46,10 +47,10 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 	SendVault(vaultID, conn) // send vault to client
 
-	ok := HUB.AddConnectionToVault(vaultID, uuid, conn)
+	c, vault := HUB.AddConnectionToVault(vaultID, uuid, conn)
 	_ = AddPlayerToVault(uuid, vaultID) // add player to vault db
 
-	if !ok { // if not ok -> connection exists -> return/close connection
+	if c == nil { // close connection/return if
 		_ = conn.WriteMessage(websocket.CloseMessage, nil)
 		err := conn.Close()
 		if err != nil {
@@ -58,7 +59,13 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if sendViewIDToast != "" { // send Toast with ViewerID if found
+		c.SendToast("Viewer Code: " + vault.ViewerCode)
+	}
+
 	defer onClose(uuid, vaultID)
+
+	isDead := 0
 
 	// this should basically be the onMessage thingy
 	for {
@@ -74,8 +81,16 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 		if string(data) == "keep_me_alive" {
 			//log.Println("Keep alive received")
+			isDead++
+
+			if isDead > 30 { // if connection keeps sending keepalives, but no other data arives, the player is afk or the client bugged out - disconnect them
+				log.Println("CONNECTION IS DEAD: " + uuid)
+				conn.WriteMessage(websocket.CloseMessage, nil)
+				return
+			}
 			continue
 		}
+		isDead = 0
 
 		var msg pb.Message
 		err2 := proto.Unmarshal(data, &msg)
@@ -83,7 +98,12 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			log.Println("Marshal problem")
 			return
 		}
+
 		onMessage(vaultID, uuid, &msg)
+		//log.Println("onmessage adding in")
+		//inPacketCounterChan <- 1
+		//log.Println("onmessage adding in done")
+
 	}
 }
 
@@ -184,6 +204,7 @@ func BroadcastMessage(vaultID string, excludeUUID string, msg *pb.Message) {
 	vault.Viewers.Range(func(key, val interface{}) bool { // go through viewers and add to their Send channels
 		conn := val.(*Connection)
 		conn.Send <- messageBuffer
+		//log.Println("sending to viewer")
 
 		return true
 	})
