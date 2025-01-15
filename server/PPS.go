@@ -34,7 +34,7 @@ func processInPacketCounter() {
 }
 
 func processOutPacketCounter() {
-	for inc := range inPacketCounterChan {
+	for inc := range outPacketCounterChan {
 		if inc == 1 {
 			atomic.AddUint64(&outPacketCount, 1)
 		}
