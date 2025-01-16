@@ -50,6 +50,14 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	c, vault := HUB.AddConnectionToVault(vaultID, uuid, conn)
 	_ = AddPlayerToVault(uuid, vaultID) // add player to vault db
 
+	// send viewer code
+	msg := &pb.Message{
+		Type:       pb.MessageType_VIEWER_CODE,
+		ViewerCode: &pb.ViewerCode{Code: GetVaultViewCode(vaultID)},
+	}
+	msgBuffer, err := proto.Marshal(msg)
+	c.Send <- msgBuffer
+
 	if c == nil { // close connection/return if
 		_ = conn.WriteMessage(websocket.CloseMessage, nil)
 		err := conn.Close()
