@@ -21,6 +21,14 @@ type Hub struct {
 	Vaults sync.Map
 }
 
+func GetVaultViewCode(vaultID string) string {
+	vault := HUB.GetVault(vaultID)
+	if vault == nil {
+		return ""
+	}
+	return vault.ViewerCode
+}
+
 // GetOrCreateVault is a helper method that gets and optionally creates Vault inside Hub
 func (h *Hub) GetOrCreateVault(vaultID string) *Vault {
 	vault, loaded := h.Vaults.LoadOrStore(vaultID, &Vault{

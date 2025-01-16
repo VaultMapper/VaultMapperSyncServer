@@ -99,7 +99,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		onMessage(vaultID, uuid, &msg)
+		onMessage(vaultID, uuid, &msg, c)
 		//log.Println("onmessage adding in")
 		//inPacketCounterChan <- 1
 		//log.Println("onmessage adding in done")
@@ -107,8 +107,7 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func onMessage(vaultID string, uuid string, msg *pb.Message) {
-	//log.Printf("\nOn message from %s\ntype: %v\n", uuid, msg.GetType())
+func onMessage(vaultID string, uuid string, msg *pb.Message, conn *Connection) {
 	msgType := msg.GetType()
 	switch msgType {
 	case pb.MessageType_VAULT_PLAYER:
@@ -131,6 +130,9 @@ func onMessage(vaultID string, uuid string, msg *pb.Message) {
 		// this shouldn't happen as the Toast is only S2C
 		log.Println(uuid + " tried to send Toast which shouldn't happen")
 		break
+	case pb.MessageType_VIEWER_CODE_REQUEST:
+		HandleViewerCodeRequest(vaultID, conn)
+		break
 	default:
 		log.Println(uuid + " sent unknown packet")
 		break
@@ -145,6 +147,22 @@ func onClose(uuid string, vaultID string) { // need to send down PlayerDisconnec
 	}
 	BroadcastMessage(vaultID, uuid, &msg)
 	HUB.RemoveConnectionFromVault(vaultID, uuid)
+}
+
+func HandleViewerCodeRequest(vaultID string, conn *Connection) {
+	code := GetVaultViewCode(vaultID)
+	if code != "" {
+		log.Println("Sending viewer code: " + code)
+		msg := pb.Message{
+			Type:       pb.MessageType_VIEWER_CODE,
+			ViewerCode: &pb.ViewerCode{Code: code},
+		}
+		messageBuffer, err := proto.Marshal(&msg)
+		if err != nil {
+			return
+		}
+		conn.Send <- messageBuffer
+	}
 }
 
 // HandlePlayerMovement handles incoming PlayerMovement packets from clients and broadcasts them to the other players
