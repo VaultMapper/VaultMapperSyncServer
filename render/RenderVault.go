@@ -12,10 +12,13 @@ import (
 const cellSize = 10 // might have to adjust for icon rendering
 
 func RenderVault(cells []*proto.VaultCell) (error, []byte) {
-	mapRes := calculateMapResolution(cells)
-	cellsPerSide := mapRes*2 + 1
-	res := cellSize * cellsPerSide
-	dc := gg.NewContext(res+cellSize, res+cellSize)
+	minX, minZ, maxX, maxZ := calculateMapResolution(cells)
+	horizonatalCells := maxX - minX
+	verticalCells := maxZ - minZ
+	horizontalRes := int(horizonatalCells * cellSize)
+	verticalRes := int(verticalCells * cellSize)
+
+	dc := gg.NewContext(horizontalRes+cellSize*2, verticalRes+cellSize*2)
 
 	startCell := &proto.VaultCell{
 		X:         0,
@@ -27,10 +30,10 @@ func RenderVault(cells []*proto.VaultCell) (error, []byte) {
 		Inscribed: false,
 		Marked:    false,
 	}
-	drawCell(dc, startCell, res)
+	drawCell(dc, startCell, minX, minZ)
 
 	for _, cell := range cells {
-		drawCell(dc, cell, res)
+		drawCell(dc, cell, minX, minZ)
 	}
 
 	var buf bytes.Buffer
@@ -64,8 +67,9 @@ func getCellColor(cell *proto.VaultCell) f64.Vec3 {
 	return f64.Vec3{0, 0, 1}
 }
 
-func drawCell(dc *gg.Context, cell *proto.VaultCell, res int) {
-	middle := float64(res / 2)
+func drawCell(dc *gg.Context, cell *proto.VaultCell, minX, minZ int32) {
+	portalX := float64(cellSize * (-minX))
+	portalZ := float64(cellSize * (-minZ))
 
 	x := float64(cell.X)
 	z := float64(cell.Z)
@@ -75,13 +79,13 @@ func drawCell(dc *gg.Context, cell *proto.VaultCell, res int) {
 
 	switch cell.CellType {
 	case proto.CellType_CELLTYPE_ROOM:
-		dc.DrawRectangle(middle+x*cellSize, middle+z*cellSize, cellSize, cellSize)
+		dc.DrawRectangle(portalX+x*cellSize, portalZ+z*cellSize, cellSize, cellSize)
 		dc.Fill()
 	case proto.CellType_CELLTYPE_TUNNEL_X:
-		dc.DrawRectangle(middle+x*cellSize, middle+z*cellSize+cellSize/4, cellSize, (cellSize/4)*2+2)
+		dc.DrawRectangle(portalX+x*cellSize, portalZ+z*cellSize+cellSize/4, cellSize, (cellSize/4)*2+2)
 		dc.Fill()
 	case proto.CellType_CELLTYPE_TUNNEL_Z:
-		dc.DrawRectangle(middle+x*cellSize+cellSize/4, middle+z*cellSize, (cellSize/4)*2+2, cellSize)
+		dc.DrawRectangle(portalX+x*cellSize+cellSize/4, portalZ+z*cellSize, (cellSize/4)*2+2, cellSize)
 		dc.Fill()
 	}
 
@@ -94,23 +98,31 @@ func drawCell(dc *gg.Context, cell *proto.VaultCell, res int) {
 		return
 	}
 
-	cellCenterX := int(middle) + int(x*cellSize+cellSize/2)
-	cellCenterZ := int(middle) + int(z*cellSize+cellSize/2)
+	cellCenterX := int(portalX) + int(x*cellSize+cellSize/2)
+	cellCenterZ := int(portalZ) + int(z*cellSize+cellSize/2)
 
 	dc.DrawImageAnchored(icon, cellCenterX, cellCenterZ, 0.5, 0.5)
 	dc.Fill()
 }
 
-func calculateMapResolution(cells []*proto.VaultCell) int {
-	maxX := int32(0)
-	maxZ := int32(0)
+func calculateMapResolution(cells []*proto.VaultCell) (minX, minZ, maxX, maxZ int32) {
+	minX = int32(math.MaxInt32)
+	minZ = int32(math.MaxInt32)
+	maxX = int32(0)
+	maxZ = int32(0)
 	for _, cell := range cells {
-		if math.Abs(float64(cell.X)) > float64(maxX) {
-			maxX = int32(math.Abs(float64(cell.X)))
+		if cell.X < minX {
+			minX = cell.X
 		}
-		if math.Abs(float64(cell.Z)) > float64(maxZ) {
-			maxZ = int32(math.Abs(float64(cell.Z)))
+		if cell.Z < minZ {
+			minZ = cell.Z
+		}
+		if cell.X > maxX {
+			maxX = cell.X
+		}
+		if cell.Z > maxZ {
+			maxZ = cell.Z
 		}
 	}
-	return int(math.Max(float64(maxX), float64(maxZ)))
+	return
 }
