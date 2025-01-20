@@ -18,15 +18,15 @@ func RenderVault(cells []*proto.VaultCell) (error, []byte) {
 	minX, minZ, maxX, maxZ := calculateMapResolution(cells)
 	horizonatalCells := maxX - minX
 	verticalCells := maxZ - minZ
-	horizontalRes := int(horizonatalCells * cellSize)
-	verticalRes := int(verticalCells * cellSize)
+	horizontalRes := int(horizonatalCells*cellSize) + cellSize
+	verticalRes := int(verticalCells*cellSize) + cellSize
 
 	if (horizontalRes * verticalRes) > 50_000_000 {
-		log.Printf("Map is too large to render(%d x %d)", horizontalRes, verticalRes)
+		log.Printf("Map is too large to render(%d x %d)\n", horizontalRes, verticalRes)
 		return errors.New("Map is too large to render"), nil
 	}
 
-	dc := gg.NewContext(horizontalRes+cellSize*2, verticalRes+cellSize*2)
+	dc := gg.NewContext(horizontalRes, verticalRes)
 
 	startCell := &proto.VaultCell{
 		X:         0,
@@ -113,11 +113,11 @@ func drawCell(dc *gg.Context, cell *proto.VaultCell, minX, minZ int32) {
 	dc.Fill()
 }
 
-func calculateMapResolution(cells []*proto.VaultCell) (minX, minZ, maxX, maxZ int32) {
-	minX = int32(math.MaxInt32)
-	minZ = int32(math.MaxInt32)
-	maxX = int32(0)
-	maxZ = int32(0)
+func calculateMapResolution(cells []*proto.VaultCell) (int32, int32, int32, int32) {
+	minX := int32(math.MaxInt32)
+	minZ := int32(math.MaxInt32)
+	maxX := int32(0)
+	maxZ := int32(0)
 	for _, cell := range cells {
 		if cell.X < minX {
 			minX = cell.X
@@ -132,5 +132,6 @@ func calculateMapResolution(cells []*proto.VaultCell) (minX, minZ, maxX, maxZ in
 			maxZ = cell.Z
 		}
 	}
-	return
+	// add 1 to each side to avoid rounded corners
+	return minX - 1, minZ - 1, maxX + 1, maxZ + 1
 }
