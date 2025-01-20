@@ -2,11 +2,14 @@ package render
 
 import (
 	"bytes"
+	"errors"
+	"log"
+	"math"
+
 	"github.com/NodiumHosting/VaultMapperSyncServer/icons"
 	"github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"github.com/fogleman/gg"
 	"golang.org/x/image/math/f64"
-	"math"
 )
 
 const cellSize = 10 // might have to adjust for icon rendering
@@ -17,6 +20,11 @@ func RenderVault(cells []*proto.VaultCell) (error, []byte) {
 	verticalCells := maxZ - minZ
 	horizontalRes := int(horizonatalCells * cellSize)
 	verticalRes := int(verticalCells * cellSize)
+
+	if (horizontalRes * verticalRes) > 50_000_000 {
+		log.Printf("Map is too large to render(%d x %d)", horizontalRes, verticalRes)
+		return errors.New("Map is too large to render"), nil
+	}
 
 	dc := gg.NewContext(horizontalRes+cellSize*2, verticalRes+cellSize*2)
 
