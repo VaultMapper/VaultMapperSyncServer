@@ -48,6 +48,17 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	SendVault(vaultID, conn) // send vault to client
 
 	c, vault := HUB.AddConnectionToVault(vaultID, uuid, conn)
+	if c == nil { // close connection/return if
+		_ = conn.WriteMessage(websocket.CloseMessage, nil)
+		err := conn.Close()
+		if err != nil {
+			return
+		}
+		return
+	}
+
+	defer onClose(uuid, vaultID)
+
 	_ = AddPlayerToVault(uuid, vaultID) // add player to vault db
 
 	// send viewer code
@@ -58,20 +69,9 @@ func handshakeHandler(w http.ResponseWriter, r *http.Request) {
 	msgBuffer, err := proto.Marshal(msg)
 	c.Send <- msgBuffer
 
-	if c == nil { // close connection/return if
-		_ = conn.WriteMessage(websocket.CloseMessage, nil)
-		err := conn.Close()
-		if err != nil {
-			return
-		}
-		return
-	}
-
 	if sendViewIDToast != "" { // send Toast with ViewerID if found
 		c.SendToast("Viewer Code: " + vault.ViewerCode)
 	}
-
-	defer onClose(uuid, vaultID)
 
 	isDead := 0
 

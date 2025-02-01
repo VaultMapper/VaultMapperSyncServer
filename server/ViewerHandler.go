@@ -43,6 +43,7 @@ func viewerHandshakeHandler(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := viewerUpgrader.Upgrade(w, r, nil)
 	if err != nil {
+		log.Println("Failed to upgrade: " + err.Error())
 		return
 	}
 	// after this point is the websocket loop
