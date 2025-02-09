@@ -17,7 +17,7 @@ export default class VaultManager {
     let vault = this.vaults.get(uuid);
     if (!vault) {
       vault = new Vault(uuid);
-      vault.drawPixelArtMessage("PLEASE\nUPDATE\nVAULTMAPPER", 0, 0, false, CellType.ROOM, RoomType.START, RoomName.UNKNOWN, false);
+      vault.drawPixelArtMessage("PLEASE FINALLY\nUPDATE YOUR\nVAULTMAPPER\nVERSION\nI WANT TO SHUT\nTHIS SERVER DOWN", 0, 0, false, CellType.ROOM, RoomType.START, RoomName.UNKNOWN, false);
       this.vaults.set(uuid, vault);
 
       DB.incOrCreateStat("global:vaults_total", 1);
