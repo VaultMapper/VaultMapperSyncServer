@@ -1,14 +1,14 @@
 package server
 
 import (
-	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
-	"github.com/NodiumHosting/VaultMapperSyncServer/util"
-	"github.com/gorilla/websocket"
-	"google.golang.org/protobuf/proto"
 	"log"
 	"net/http"
 	"regexp"
 	"time"
+
+	pb "github.com/NodiumHosting/VaultMapperSyncServer/proto"
+	"github.com/gorilla/websocket"
+	"google.golang.org/protobuf/proto"
 )
 
 var upgrader = websocket.Upgrader{
@@ -183,22 +183,6 @@ func HandlePlayerMovement(vaultID string, uuid string, msg *pb.Message) {
 func HandleVaultCell(vaultID string, uuid string, msg *pb.Message) {
 	log.Println("Handling VaultCell")
 	cell := msg.GetVaultCell()
-	if cell.GetCellType() == pb.CellType_CELLTYPE_ROOM {
-		if cell.GetX()%2 != 0 || cell.GetZ()%2 != 0 {
-			log.Println("Sent invalid room cell", uuid)
-			return
-		}
-	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_X {
-		if util.Abs(cell.GetX())%2 != 1 || cell.GetZ()%2 != 0 {
-			log.Println("Sent invalid tunnel cellz", uuid)
-			return
-		}
-	} else if cell.GetCellType() == pb.CellType_CELLTYPE_TUNNEL_Z {
-		if cell.GetX()%2 != 0 || util.Abs(cell.GetZ())%2 != 1 {
-			log.Println("Sent invalid tunnel cellx", uuid)
-			return
-		}
-	}
 
 	BroadcastMessage(vaultID, uuid, msg)
 	vault := HUB.GetVault(vaultID)
