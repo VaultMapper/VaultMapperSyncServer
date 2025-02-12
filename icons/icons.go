@@ -3,30 +3,37 @@ package icons
 import (
 	"bytes"
 	"fmt"
-	"github.com/NodiumHosting/VaultMapperSyncServer/proto"
 	"image"
 	"os"
 	"path/filepath"
+
+	"github.com/NodiumHosting/VaultMapperSyncServer/proto"
 )
 
 var iconMap = map[proto.RoomName]image.Image{
-	proto.RoomName_ROOMNAME_BLACKSMITH:    ReadIcon("./icons/blacksmith.png"),
-	proto.RoomName_ROOMNAME_COVE:          ReadIcon("./icons/cove.png"),
-	proto.RoomName_ROOMNAME_CRYSTAL_CAVES: ReadIcon("./icons/crystal_caves.png"),
-	proto.RoomName_ROOMNAME_CUBE:          ReadIcon("./icons/cube.png"),
-	proto.RoomName_ROOMNAME_DIG_SITE:      ReadIcon("./icons/dig_site.png"),
-	proto.RoomName_ROOMNAME_DRAGON:        ReadIcon("./icons/dragon.png"),
-	proto.RoomName_ROOMNAME_FACTORY:       ReadIcon("./icons/factory.png"),
-	proto.RoomName_ROOMNAME_LIBRARY:       ReadIcon("./icons/library.png"),
-	proto.RoomName_ROOMNAME_MINE:          ReadIcon("./icons/mine.png"),
-	proto.RoomName_ROOMNAME_MUSH_ROOM:     ReadIcon("./icons/mush_room.png"),
-	proto.RoomName_ROOMNAME_PAINTING:      ReadIcon("./icons/painting.png"),
-	proto.RoomName_ROOMNAME_VENDOR:        ReadIcon("./icons/vendor.png"),
-	proto.RoomName_ROOMNAME_VILLAGE:       ReadIcon("./icons/village.png"),
-	proto.RoomName_ROOMNAME_WILD_WEST:     ReadIcon("./icons/wild_west.png"),
-	proto.RoomName_ROOMNAME_X_MARK:        ReadIcon("./icons/x_mark.png"),
-	proto.RoomName_ROOMNAME_RAID:          ReadIcon("./icons/raid.png"),
-	proto.RoomName_ROOMNAME_LAB:           ReadIcon("./icons/laboratory.png"),
+	proto.RoomName_ROOMNAME_BLACKSMITH:       ReadIcon("./icons/blacksmith.png"),
+	proto.RoomName_ROOMNAME_COVE:             ReadIcon("./icons/cove.png"),
+	proto.RoomName_ROOMNAME_CRYSTAL_CAVES:    ReadIcon("./icons/crystal_caves.png"),
+	proto.RoomName_ROOMNAME_CUBE:             ReadIcon("./icons/cube.png"),
+	proto.RoomName_ROOMNAME_DIG_SITE:         ReadIcon("./icons/dig_site.png"),
+	proto.RoomName_ROOMNAME_DRAGON:           ReadIcon("./icons/dragon.png"),
+	proto.RoomName_ROOMNAME_FACTORY:          ReadIcon("./icons/factory.png"),
+	proto.RoomName_ROOMNAME_LIBRARY:          ReadIcon("./icons/library.png"),
+	proto.RoomName_ROOMNAME_MINE:             ReadIcon("./icons/mine.png"),
+	proto.RoomName_ROOMNAME_MUSH_ROOM:        ReadIcon("./icons/mush_room.png"),
+	proto.RoomName_ROOMNAME_PAINTING:         ReadIcon("./icons/painting.png"),
+	proto.RoomName_ROOMNAME_VENDOR:           ReadIcon("./icons/vendor.png"),
+	proto.RoomName_ROOMNAME_VILLAGE:          ReadIcon("./icons/village.png"),
+	proto.RoomName_ROOMNAME_WILD_WEST:        ReadIcon("./icons/wild_west.png"),
+	proto.RoomName_ROOMNAME_X_MARK:           ReadIcon("./icons/x_mark.png"),
+	proto.RoomName_ROOMNAME_RAID:             ReadIcon("./icons/raid.png"),
+	proto.RoomName_ROOMNAME_LAB:              ReadIcon("./icons/laboratory.png"),
+	proto.RoomName_ROOMNAME_PIRATE_CAVE:      ReadIcon("./icons/pirate_cave.png"),
+	proto.RoomName_ROOMNAME_GARDEN:           ReadIcon("./icons/woldian_garden.png"),
+	proto.RoomName_ROOMNAME_ARCADE:           ReadIcon("./icons/arcade.png"),
+	proto.RoomName_ROOMNAME_COMET:            ReadIcon("./icons/comet_observatory.png"),
+	proto.RoomName_ROOMNAME_PLAYZONE:         ReadIcon("./icons/playzone.png"),
+	proto.RoomName_ROOMNAME_HELLISH_DIG_SITE: ReadIcon("./icons/hellish_digsite.png"),
 }
 
 func GetIcon(roomName *proto.RoomName) image.Image {
