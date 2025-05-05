@@ -115,6 +115,22 @@ func GetIcon(roomName *string) image.Image {
 		return ReadIcon("./icons/raid.png")
 	}
 
+	if strings.Contains(*roomName, "end") {
+		return ReadIcon("./icons/end.png")
+	}
+
+	if strings.Contains(*roomName, "nether") {
+		return ReadIcon("./icons/nether.png")
+	}
+
+	if strings.Contains(*roomName, "quarry") {
+		return ReadIcon("./icons/quarry.png")
+	}
+
+	if strings.Contains(*roomName, "farm") {
+		return ReadIcon("./icons/farm.png")
+	}
+
 	for iconPathOriginal := range data.RoomIcons {
 		for _, roomNameOriginal := range data.RoomIcons[iconPathOriginal] {
 			if roomNameOriginal == *roomName {
