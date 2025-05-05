@@ -103,6 +103,18 @@ func Init() {
 }
 
 func GetIcon(roomName *string) image.Image {
+	if (roomName == nil) || (*roomName == "") {
+		return nil
+	}
+
+	if strings.Contains(*roomName, "boss") {
+		return ReadIcon("./icons/boss.png")
+	}
+
+	if strings.Contains(*roomName, "raid") {
+		return ReadIcon("./icons/raid.png")
+	}
+
 	for iconPathOriginal := range data.RoomIcons {
 		for _, roomNameOriginal := range data.RoomIcons[iconPathOriginal] {
 			if roomNameOriginal == *roomName {
@@ -113,7 +125,11 @@ func GetIcon(roomName *string) image.Image {
 		}
 	}
 
-	return nil
+	// if not found, try path from room name (can be the case with unexplored inscription rooms)
+	rnSplit := strings.Split(*roomName, "/")
+	iconName := rnSplit[len(rnSplit)-1]
+
+	return ReadIcon("./icons/" + iconName + ".png")
 }
 
 func ReadIcon(relPath string) image.Image {
