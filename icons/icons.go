@@ -34,6 +34,15 @@ var iconMap = map[proto.RoomName]image.Image{
 	proto.RoomName_ROOMNAME_COMET:            ReadIcon("./icons/comet_observatory.png"),
 	proto.RoomName_ROOMNAME_PLAYZONE:         ReadIcon("./icons/playzone.png"),
 	proto.RoomName_ROOMNAME_HELLISH_DIG_SITE: ReadIcon("./icons/hellish_digsite.png"),
+	proto.RoomName_ROOMNAME_BOSS:             ReadIcon("./icons/boss_room.png"),
+	proto.RoomName_ROOMNAME_CHROMATIC_CAVES:  ReadIcon("./icons/chromatic_caves.png"),
+	proto.RoomName_ROOMNAME_DIAMOND_CAVES:    ReadIcon("./icons/diamond_caves.png"),
+	proto.RoomName_ROOMNAME_EMERALD_CAVES:    ReadIcon("./icons/emerald_caves.png"),
+	proto.RoomName_ROOMNAME_END:              ReadIcon("./icons/raw_end.png"),
+	proto.RoomName_ROOMNAME_MODDED_CAVES:     ReadIcon("./icons/raw_modded_caves.png"),
+	proto.RoomName_ROOMNAME_NETHER:           ReadIcon("./icons/raw_nether.png"),
+	proto.RoomName_ROOMNAME_QUARRY:           ReadIcon("./icons/raw_quarry.png"),
+	proto.RoomName_ROOMNAME_FARM:             ReadIcon("./icons/the_farm.png"),
 }
 
 func GetIcon(roomName *proto.RoomName) image.Image {
