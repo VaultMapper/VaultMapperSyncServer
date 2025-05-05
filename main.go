@@ -3,6 +3,7 @@ package main
 import (
 	"cmp"
 	"fmt"
+	"github.com/NodiumHosting/VaultMapperSyncServer/icons"
 	VMServer "github.com/NodiumHosting/VaultMapperSyncServer/server"
 	"github.com/joho/godotenv"
 	"io"
@@ -29,6 +30,8 @@ func main() {
 
 	parseEnv()
 	log.Println(ipAddress, port)
+
+	icons.Init()
 
 	VMServer.InitDB()
 

@@ -17,7 +17,7 @@ type VaultCell struct {
 	Z         int32
 	CellType  int32
 	RoomType  int32
-	RoomName  int32
+	RoomName  string
 	Explored  bool
 	Inscribed bool
 	Marked    bool

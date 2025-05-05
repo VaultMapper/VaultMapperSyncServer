@@ -2,51 +2,118 @@ package icons
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"image"
 	"os"
 	"path/filepath"
-
-	"github.com/NodiumHosting/VaultMapperSyncServer/proto"
+	"strings"
 )
 
-var iconMap = map[proto.RoomName]image.Image{
-	proto.RoomName_ROOMNAME_BLACKSMITH:       ReadIcon("./icons/blacksmith.png"),
-	proto.RoomName_ROOMNAME_COVE:             ReadIcon("./icons/cove.png"),
-	proto.RoomName_ROOMNAME_CRYSTAL_CAVES:    ReadIcon("./icons/crystal_caves.png"),
-	proto.RoomName_ROOMNAME_CUBE:             ReadIcon("./icons/cube.png"),
-	proto.RoomName_ROOMNAME_DIG_SITE:         ReadIcon("./icons/dig_site.png"),
-	proto.RoomName_ROOMNAME_DRAGON:           ReadIcon("./icons/dragon.png"),
-	proto.RoomName_ROOMNAME_FACTORY:          ReadIcon("./icons/factory.png"),
-	proto.RoomName_ROOMNAME_LIBRARY:          ReadIcon("./icons/library.png"),
-	proto.RoomName_ROOMNAME_MINE:             ReadIcon("./icons/mine.png"),
-	proto.RoomName_ROOMNAME_MUSH_ROOM:        ReadIcon("./icons/mush_room.png"),
-	proto.RoomName_ROOMNAME_PAINTING:         ReadIcon("./icons/painting.png"),
-	proto.RoomName_ROOMNAME_VENDOR:           ReadIcon("./icons/vendor.png"),
-	proto.RoomName_ROOMNAME_VILLAGE:          ReadIcon("./icons/village.png"),
-	proto.RoomName_ROOMNAME_WILD_WEST:        ReadIcon("./icons/wild_west.png"),
-	proto.RoomName_ROOMNAME_X_MARK:           ReadIcon("./icons/x_mark.png"),
-	proto.RoomName_ROOMNAME_RAID:             ReadIcon("./icons/raid.png"),
-	proto.RoomName_ROOMNAME_LAB:              ReadIcon("./icons/laboratory.png"),
-	proto.RoomName_ROOMNAME_PIRATE_CAVE:      ReadIcon("./icons/pirate_cave.png"),
-	proto.RoomName_ROOMNAME_GARDEN:           ReadIcon("./icons/woldian_garden.png"),
-	proto.RoomName_ROOMNAME_ARCADE:           ReadIcon("./icons/arcade.png"),
-	proto.RoomName_ROOMNAME_COMET:            ReadIcon("./icons/comet_observatory.png"),
-	proto.RoomName_ROOMNAME_PLAYZONE:         ReadIcon("./icons/playzone.png"),
-	proto.RoomName_ROOMNAME_HELLISH_DIG_SITE: ReadIcon("./icons/hellish_digsite.png"),
-	proto.RoomName_ROOMNAME_BOSS:             ReadIcon("./icons/boss_room.png"),
-	proto.RoomName_ROOMNAME_CHROMATIC_CAVES:  ReadIcon("./icons/chromatic_caves.png"),
-	proto.RoomName_ROOMNAME_DIAMOND_CAVES:    ReadIcon("./icons/diamond_caves.png"),
-	proto.RoomName_ROOMNAME_EMERALD_CAVES:    ReadIcon("./icons/emerald_caves.png"),
-	proto.RoomName_ROOMNAME_END:              ReadIcon("./icons/raw_end.png"),
-	proto.RoomName_ROOMNAME_MODDED_CAVES:     ReadIcon("./icons/raw_modded_caves.png"),
-	proto.RoomName_ROOMNAME_NETHER:           ReadIcon("./icons/raw_nether.png"),
-	proto.RoomName_ROOMNAME_QUARRY:           ReadIcon("./icons/raw_quarry.png"),
-	proto.RoomName_ROOMNAME_FARM:             ReadIcon("./icons/the_farm.png"),
+var jsonData = `{
+    "roomIcons": {
+        "the_vault:gui/map/crystal_caves": [
+            "the_vault:vault/rooms/challenge/crystal_caves1",
+            "the_vault:vault/rooms/challenge/crystal_caves2",
+            "the_vault:vault/rooms/challenge/crystal_caves3",
+            "the_vault:vault/rooms/challenge/crystal_caves4",
+            "the_vault:vault/rooms/challenge/crystal_caves5"
+        ],
+        "the_vault:gui/map/dragon": [
+            "the_vault:vault/rooms/challenge/dragon1"
+        ],
+        "the_vault:gui/map/factory": [
+            "the_vault:vault/rooms/challenge/factory1"
+        ],
+        "the_vault:gui/map/raid": [
+            "the_vault:vault/rooms/challenge/raid1"
+        ],
+        "the_vault:gui/map/lab": [
+            "the_vault:vault/rooms/challenge/laboratory1",
+            "the_vault:vault/rooms/challenge/laboratory2"
+        ],
+        "the_vault:gui/map/xmark": [
+            "the_vault:vault/rooms/challenge/x-mark1"
+        ],
+        "the_vault:gui/map/village": [
+            "the_vault:vault/rooms/challenge/village1",
+            "the_vault:vault/rooms/challenge/village2",
+            "the_vault:vault/rooms/challenge/village3",
+            "the_vault:vault/rooms/challenge/village4"
+        ],
+        "the_vault:gui/map/chromatic_caves": [
+            "the_vault:vault/rooms/raw/chromatic_cave1"
+        ],
+        "the_vault:gui/map/emerald_caves": [
+            "the_vault:vault/rooms/raw/emerald_cave1"
+        ],
+        "the_vault:gui/map/diamond_caves": [
+            "the_vault:vault/rooms/raw/diamond_cave1"
+        ],
+        "the_vault:gui/map/farm": [
+            "the_vault:vault/decor/raw/farm/farm1",
+            "the_vault:vault/decor/raw/farm/farm2",
+            "the_vault:vault/decor/raw/farm/farm3",
+            "the_vault:vault/decor/raw/farm/farm4",
+            "the_vault:vault/decor/raw/farm/farm5",
+            "the_vault:vault/decor/raw/farm/farm6"
+        ],
+        "the_vault:gui/map/cove": [
+            "the_vault:vault/rooms/omega/cove1"
+        ],
+        "the_vault:gui/map/digsite": [
+            "the_vault:vault/rooms/omega/omega_digsite1",
+            "the_vault:vault/rooms/omega/omega_digsite2"
+        ],
+        "the_vault:gui/map/vendor": [
+            "the_vault:vault/rooms/omega/vendor1",
+            "the_vault:vault/rooms/omega/vendor2",
+            "the_vault:vault/rooms/omega/vendor3"
+        ],
+        "the_vault:gui/map/paint": [
+            "the_vault:vault/rooms/omega/painting1"
+        ],
+        "the_vault:gui/map/mine": [
+            "the_vault:vault/rooms/omega/mine1",
+            "the_vault:vault/rooms/omega/mine2"
+        ],
+        "the_vault:gui/map/blacksmith": [
+            "the_vault:vault/rooms/omega/blacksmith1"
+        ],
+        "the_vault:gui/map/library": [
+            "the_vault:vault/rooms/omega/library1"
+        ],
+        "the_vault:gui/map/mushroom": [
+            "the_vault:vault/rooms/omega/mush_room1",
+            "the_vault:vault/rooms/omega/mush_room2"
+        ]
+    }
+}`
+
+var data struct {
+	RoomIcons map[string][]string `json:"roomIcons"`
 }
 
-func GetIcon(roomName *proto.RoomName) image.Image {
-	return iconMap[*roomName]
+func Init() {
+	err := json.Unmarshal([]byte(jsonData), &data)
+	if err != nil {
+		fmt.Println("Error unmarshalling JSON: ", err)
+		return
+	}
+}
+
+func GetIcon(roomName *string) image.Image {
+	for iconPathOriginal := range data.RoomIcons {
+		for _, roomNameOriginal := range data.RoomIcons[iconPathOriginal] {
+			if roomNameOriginal == *roomName {
+				iconFileSplit := strings.Split(iconPathOriginal, "/")
+				iconFile := iconFileSplit[len(iconFileSplit)-1]
+				return ReadIcon("./icons/" + iconFile + ".png")
+			}
+		}
+	}
+
+	return nil
 }
 
 func ReadIcon(relPath string) image.Image {

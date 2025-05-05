@@ -164,7 +164,7 @@ func (v *Vault) AddOrReplaceCell(cell *pb.VaultCell) {
 		Z:         cell.Z,
 		CellType:  int32(cell.CellType),
 		RoomType:  int32(cell.RoomType),
-		RoomName:  int32(cell.RoomName),
+		RoomName:  cell.RoomName,
 		Explored:  cell.Explored,
 		Inscribed: cell.Inscribed,
 		Marked:    cell.Marked,

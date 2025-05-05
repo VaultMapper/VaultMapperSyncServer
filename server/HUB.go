@@ -67,7 +67,7 @@ func (h *Hub) GetOrCreateVault(vaultID string) *Vault {
 				Z:         cell.Z,
 				CellType:  pb.CellType(cell.CellType),
 				RoomType:  pb.RoomType(cell.RoomType),
-				RoomName:  pb.RoomName(cell.RoomName),
+				RoomName:  cell.RoomName,
 				Explored:  cell.Explored,
 				Inscribed: cell.Inscribed,
 				Marked:    cell.Marked,

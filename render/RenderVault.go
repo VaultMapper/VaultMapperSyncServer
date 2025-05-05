@@ -33,7 +33,7 @@ func RenderVault(cells []*proto.VaultCell) (error, []byte) {
 		Z:         0,
 		CellType:  proto.CellType_CELLTYPE_ROOM,
 		RoomType:  proto.RoomType_ROOMTYPE_START,
-		RoomName:  proto.RoomName_ROOMNAME_UNKNOWN,
+		RoomName:  "",
 		Explored:  true,
 		Inscribed: false,
 		Marked:    false,
@@ -100,7 +100,7 @@ func drawCell(dc *gg.Context, cell *proto.VaultCell, minX, minZ int32) {
 		dc.Fill()
 	}
 
-	if cell.RoomName == proto.RoomName_ROOMNAME_UNKNOWN {
+	if cell.RoomName == "" {
 		return
 	}
 
