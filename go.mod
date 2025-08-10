@@ -1,6 +1,8 @@
 module github.com/NodiumHosting/VaultMapperSyncServer
 
-go 1.22.3
+go 1.23.0
+
+toolchain go1.24.5
 
 require (
 	github.com/disgoorg/disgo v0.18.14
@@ -17,10 +19,14 @@ require (
 
 require (
 	github.com/disgoorg/snowflake/v2 v2.0.3 // indirect
+	github.com/go-co-op/gocron/v2 v2.16.3 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/jonboulle/clockwork v0.5.0 // indirect
 	github.com/mattn/go-sqlite3 v1.14.22 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sasha-s/go-csync v0.0.0-20240107134140-fcbab37b09ad // indirect
 	golang.org/x/text v0.21.0 // indirect
 )

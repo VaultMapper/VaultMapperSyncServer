@@ -3,13 +3,16 @@ package server
 import (
 	"errors"
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
+	"github.com/go-co-op/gocron/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"log"
+	"time"
 )
 
 var DB *gorm.DB
+var DBScheduler gocron.Scheduler
 
 func InitDB() {
 	var err error
@@ -24,6 +27,63 @@ func InitDB() {
 	if err1 != nil {
 		return
 	}
+}
+
+// CleanDB is used to clean the db of any old vaults, cells and players
+// will be triggered every x using gocron
+func CleanDB() {
+	log.Println("Cleaning database")
+
+	// add timing, display the time it took after commit done
+	var startTime = time.Now()
+
+	query := `
+DELETE FROM vault_cells 
+WHERE vault_id IN (
+    SELECT vault_id FROM vaults 
+    WHERE created_at < datetime('now', '-30 days')
+);
+DELETE FROM player_vaults 
+WHERE vault_id IN (
+    SELECT vault_id FROM vaults 
+    WHERE created_at < datetime('now', '-30 days')
+);
+DELETE FROM vaults 
+WHERE created_at < datetime('now', '-30 days');
+`
+	if err := DB.Exec(query).Error; err != nil {
+		log.Println("Error cleaning database: ", err)
+
+	}
+
+	// print time it took to clean db
+	log.Printf("Time taken to clean database: %s\n", time.Since(startTime))
+}
+
+func StartCron() {
+	var err error
+	DBScheduler, err = gocron.NewScheduler()
+	if err != nil {
+		log.Fatalf("Failed to create scheduler: %v", err)
+	}
+
+	_, err = DBScheduler.NewJob(
+		gocron.DailyJob(1, gocron.NewAtTimes(gocron.NewAtTime(0, 0, 0))),
+		gocron.NewTask(
+			func() {
+				CleanDB()
+			},
+		),
+	)
+	if err != nil {
+		log.Fatalf("Failed to create job: %v", err)
+	}
+	DBScheduler.Start()
+	log.Println("Cron started")
+}
+
+func StopCron() {
+	_ = DBScheduler.Shutdown()
 }
 
 // SaveVault updates the vault record in the database, creates a new vault record if needed

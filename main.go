@@ -37,7 +37,12 @@ func main() {
 
 	VMServer.RunTerminal()
 
+	VMServer.CleanDB()   // clean the database on startup
+	VMServer.StartCron() // start the cron job to clean the database every day at midnight
+
 	VMServer.Run(ipAddress, port)
+
+	VMServer.StopCron()
 }
 
 // parseEnv() parses environment variables and reverts to defaults if necessary
