@@ -58,6 +58,13 @@ WHERE created_at < datetime('now', '-30 days');
 
 	// print time it took to clean db
 	log.Printf("Time taken to clean database: %s\n", time.Since(startTime))
+
+	//run a vacuum to clean up the database file
+	if err := DB.Exec("VACUUM").Error; err != nil {
+		log.Println("Error running VACUUM on database: ", err)
+	} else {
+		log.Println("Database cleaned successfully")
+	}
 }
 
 func StartCron() {
