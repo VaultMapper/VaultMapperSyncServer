@@ -3,13 +3,14 @@ package main
 import (
 	"cmp"
 	"fmt"
-	"github.com/NodiumHosting/VaultMapperSyncServer/icons"
-	VMServer "github.com/NodiumHosting/VaultMapperSyncServer/server"
-	"github.com/joho/godotenv"
 	"io"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/NodiumHosting/VaultMapperSyncServer/icons"
+	VMServer "github.com/NodiumHosting/VaultMapperSyncServer/server"
+	"github.com/joho/godotenv"
 )
 
 var (
@@ -35,6 +36,7 @@ func main() {
 
 	VMServer.InitDB()
 
+	VMServer.RegisterCommands()
 	VMServer.RunTerminal()
 
 	VMServer.CleanDB()   // clean the database on startup

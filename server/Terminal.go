@@ -8,21 +8,133 @@ import (
 	"strings"
 )
 
-func HandleCommand(command string) {
-	if strings.HasPrefix(command, "toast ") {
-		restOfCommand := strings.TrimPrefix(command, "toast ")
-		log.Println("Broadcasting toast: " + restOfCommand)
-		HUB.BroadcastToast(restOfCommand)
+type Command struct {
+	name string
+	// aliases can be nil
+	aliases []string
+	// usage can be nil but should explain how the command is intended to be used and what it's syntax is
+	usage string
+	// we first try to execute execStr or if that is nil then we try to execute execArr
+	execStr func(args string) (ok bool)
+	execArr func(args []string) (ok bool)
+}
+
+func (c *Command) exec(args []string) (ok bool) {
+	if c.execStr != nil {
+		return c.execStr(strings.Join(args, " "))
+	}
+	if c.execArr != nil {
+		return c.execArr(args)
+	}
+	return false
+}
+
+var commands = make([]Command, 0)
+
+func RegisterCommand(name string, aliases []string, usage string, execStr func(args string) (ok bool), execArr func(args []string) (ok bool)) {
+	commands = append(commands, Command{
+		name,
+		aliases,
+		usage,
+		execStr,
+		execArr,
+	})
+}
+
+func RegisterCommands() {
+	RegisterCommand("help", []string{}, "help", nil, handleHelp)
+	RegisterCommand("toast", nil, "toast <message>", handleToast, nil)
+	RegisterCommand("toastv", nil, "toastv <vault_id> <message>", nil, handleToastV)
+}
+
+func handleHelp(args []string) (ok bool) {
+	if len(args) == 0 {
+		fmt.Print("Available Commands: ")
+		for i, cmd := range commands {
+			fmt.Print(cmd.name)
+			if i < len(commands)-1 {
+				fmt.Print(", ")
+			} else {
+				fmt.Println()
+			}
+		}
+	} else {
+		command := args[0]
+
+		for _, cmd := range commands {
+			if command == cmd.name {
+				log.Println("Command " + cmd.name + " usage: " + cmd.usage)
+				return true
+			}
+
+			for _, alias := range cmd.aliases {
+				if command == alias {
+					log.Println("Command " + cmd.name + " usage: " + cmd.usage)
+					return true
+				}
+			}
+		}
+
+		log.Println("Cannot list help for unknown command")
+
+		return true
 	}
 
-	if strings.HasPrefix(command, "toastv ") {
-		restOfCommand := strings.TrimPrefix(command, "toastv ")
-		split := strings.Split(restOfCommand, " ")
-		vaultID := split[0]
-		text := strings.Join(split[1:], " ")
-		log.Println("Broadcasting toast in vault " + vaultID + ": " + text)
-		HUB.BroadcastToastInVault(vaultID, text)
+	return true
+}
+
+func handleToast(args string) (ok bool) {
+	log.Println("Broadcasting toast: " + args)
+	HUB.BroadcastToast(args)
+
+	return true
+}
+
+func handleToastV(args []string) (ok bool) {
+	if len(args) < 2 {
+		// not enough args
+		return false
 	}
+
+	vaultID := args[0]
+	text := strings.Join(args[1:], " ")
+	log.Println("Broadcasting toast in vault " + vaultID + ": " + text)
+	HUB.BroadcastToastInVault(vaultID, text)
+
+	return true
+}
+
+func HandleCommand(commandString string) {
+	parts := strings.Split(commandString, " ")
+
+	if len(parts) == 0 {
+		log.Println("Invalid Command")
+		return
+	}
+
+	command := parts[0]
+
+	for _, cmd := range commands {
+		if command == cmd.name {
+			ok := cmd.exec(parts[1:])
+			if !ok {
+				log.Println("Failed to execute command " + cmd.name + " (" + command + "). Usage: " + cmd.usage)
+			}
+			return
+		}
+
+		for _, alias := range cmd.aliases {
+			if command == alias {
+				ok := cmd.exec(parts[1:])
+				if !ok {
+					log.Println("Failed to execute command " + cmd.name + " (" + command + "). Usage: " + cmd.usage)
+				}
+				return
+			}
+		}
+	}
+
+	log.Println("Unknown command")
 }
 
 func StartTerminal() {
