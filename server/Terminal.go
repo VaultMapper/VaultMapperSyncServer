@@ -45,6 +45,8 @@ func RegisterCommands() {
 	RegisterCommand("help", []string{}, "help", nil, handleHelp)
 	RegisterCommand("toast", nil, "toast <message>", handleToast, nil)
 	RegisterCommand("toastv", nil, "toastv <vault_id> <message>", nil, handleToastV)
+
+	RegisterCommand("troll", nil, "troll global <troll>; troll <vault/player> <vault_id/player_uuid> <troll>; troll list", nil, handleTroll)
 }
 
 func handleHelp(args []string) (ok bool) {
@@ -100,6 +102,59 @@ func handleToastV(args []string) (ok bool) {
 	text := strings.Join(args[1:], " ")
 	log.Println("Broadcasting toast in vault " + vaultID + ": " + text)
 	HUB.BroadcastToastInVault(vaultID, text)
+
+	return true
+}
+
+func handleTroll(args []string) (ok bool) {
+	// troll global <troll>
+	// troll <vault/player> <vault_id/player_uuid> <troll>
+	// troll list
+
+	if len(args) < 1 {
+		return false
+	}
+
+	switch args[0] {
+	case "list":
+		fmt.Print("Available Trolls: ")
+		for i, troll := range Trolls {
+			fmt.Print(troll.name)
+			if i < len(Trolls)-1 {
+				fmt.Print(", ")
+			} else {
+				fmt.Println()
+			}
+		}
+	case "global":
+		if len(args) < 2 {
+			return false
+		}
+		troll := FindTroll(args[1])
+		if troll == nil {
+			log.Println("Unknown Troll")
+			return true
+		}
+		troll.execGlobal()
+	case "vault":
+		fallthrough
+	case "player":
+		if len(args) < 3 {
+			return false
+		}
+
+		troll := FindTroll(args[2])
+		if troll == nil {
+			log.Println("Unknown Troll")
+			return true
+		}
+
+		if args[0] == "vault" {
+			troll.execVault(args[1])
+		} else {
+			troll.execPlayer(args[1])
+		}
+	}
 
 	return true
 }
