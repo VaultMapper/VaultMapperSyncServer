@@ -2,13 +2,14 @@ package server
 
 import (
 	"errors"
+	"log"
+	"time"
+
 	"github.com/NodiumHosting/VaultMapperSyncServer/models"
 	"github.com/go-co-op/gocron/v2"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"time"
 )
 
 var DB *gorm.DB
@@ -20,7 +21,7 @@ func InitDB() {
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
-		log.Fatal("failed to connect database")
+		log.Fatal("failed to connect database, %w", err)
 	}
 
 	err1 := DB.AutoMigrate(&models.Vault{}, &models.VaultCell{}, &models.PlayerVault{}, &models.Player{})

@@ -122,7 +122,7 @@ func calculateMapResolution(cells []*proto.VaultCell) (int32, int32, int32, int3
 	maxX := int32(0)
 	maxZ := int32(0)
 	for _, cell := range cells {
-		if !cell.GetInscribed() && !cell.GetExplored() {
+		if !cell.GetInscribed() && !cell.GetExplored() && cell.GetCellType() == proto.CellType_CELLTYPE_UNKNOWN {
 			continue
 		}
 		if cell.X < minX {
